@@ -1,11 +1,10 @@
-use num_traits::Num;
 use crate::IoDeSer;
 use std::str::FromStr;
 
 macro_rules! impl_iodeser_primitive {
     ($type:ty) => {
         impl IoDeSer<$type> for $type {
-            fn to_io_string(self) -> String {
+            fn to_io_string(self, _tab: u8) -> String {
                 format!("|{}|", self)
             }
 
@@ -19,7 +18,7 @@ macro_rules! impl_iodeser_primitive {
 }
 
 impl IoDeSer<String> for String {
-    fn to_io_string(self) -> String {
+    fn to_io_string(self, _tab: u8) -> String {
         format!("|{}|", self)
     }
 
