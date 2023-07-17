@@ -29,6 +29,7 @@ impl IoDeSer<String> for String {
     }
 }
 
+
 impl_iodeser_primitive!(i8);
 impl_iodeser_primitive!(i16);
 impl_iodeser_primitive!(i32);
