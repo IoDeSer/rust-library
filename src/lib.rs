@@ -9,7 +9,7 @@ pub struct IoSerialization<T: IoDeSer<T>>{
 }
 
 impl<T: IoDeSer<T>> IoSerialization<T> {
-    fn begin(obj: T)->IoSerialization<T>{
+    pub fn begin(obj: T)->IoSerialization<T>{
         IoSerialization{ obj, tab: 0 }
     }
 
@@ -29,50 +29,42 @@ pub fn to_io_string<T: IoDeSer<T>>(obj: T) -> String{
 
 pub trait IoDeSer<T>{ //TODO some errors when using generic struct<T> as T
     fn to_io_string(self, tab: u8)->String;
-    fn from_io_string(io_input:String)->T;
-}
-
-// TODO: vectors, hashmaps, arrays, whole deserialization
-
-/*
-EXAMPLE:
-
-use io_de_ser::*;
-
-#[derive(IoDeSer, Debug)]
-struct Person {
-	pub name: String,
-	pub age: i32,
-	pub test: Test,
-}
-
-#[derive(IoDeSer, Debug)]
-struct Test {
-	pub year: u64,
-	pub test2: Test2,
-}
-
-#[derive(IoDeSer, Debug)]
-struct Test2 {
-	pub char_eg: char,
+    fn from_io_string(io_input:&mut String)->T;
 }
 
 
-fn main() {
-	let x = Person { name: "example_name".to_string(), age: 1, test: Test { year: 2023, test2: Test2 { char_eg: 'z' } } };
-	let f = to_io_string(x);
-	println!("{f}");
+///////////////////
+///////////////////
+///////////////////
+
+pub(crate) fn delete_tabulator(io_string: &mut String){
+    let mut ret = String::new();
+    let lines: Vec<&str> = io_string.lines().collect();
+
+    for line in lines {
+        if line.len() > 1 {
+            ret += &format!("{}\n", &line[1..]);
+        }
+    }
+
+    *io_string = ret.trim().to_string();
 }
 
-OUTPUT:
-|
-        name->|example_name|
-        age->|1|
-        test->|
-                year->|2023|
-                test2->|
-                        char_eg->|z|
-                |
-        |
-|
- */
+#[macro_export]
+macro_rules! from_io{
+    ($obj: expr, $type: ty)=>{
+        <$type>::from_io_string(&mut $obj.clone())
+    };
+}
+
+#[macro_export]
+macro_rules! to_io{
+    ($obj: expr)=>{
+        IoSerialization::begin($obj).ser()
+    };
+}
+
+
+
+// TODO: hashmaps, arrays (slices/anything Iterable<>), *whole deserialization*
+// DONE: vectors, primitives, classes, strings

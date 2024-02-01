@@ -1,4 +1,4 @@
-use crate::IoDeSer;
+use crate::{delete_tabulator, from_io, IoDeSer};
 use std::str::FromStr;
 
 
@@ -21,8 +21,25 @@ impl<T: IoDeSer<T>> IoDeSer<Vec<T>> for Vec<T>{
 		format!("|\n{}\n{}|",iterable_ser(self.into_iter(), tab), (0..tab).map(|_| "\t").collect::<String>())
 	}
 
-	fn from_io_string(io_input: String) -> Vec<T> {
-		todo!()
+	fn from_io_string(io_input: &mut String) -> Vec<T> {
+		//todo!()
+		delete_tabulator(io_input);
+		let mut objects: Vec<&str> = io_input.split("\n+\n").collect();
+		if objects.is_empty(){
+			if io_input.is_empty(){
+				objects = Vec::new();
+			} else{
+				objects = vec![io_input];
+			}
+		}
+
+
+		let mut v = Vec::<T>::new();
+		for obj in objects {
+			v.push(from_io!(obj.trim().to_string(), T));
+		}
+
+		v
 	}
 }
 

@@ -8,7 +8,7 @@ macro_rules! impl_iodeser_primitive {
                 format!("|{}|", self)
             }
 
-            fn from_io_string(io_input: String) -> $type {
+            fn from_io_string(io_input: &mut String) -> $type {
                 let chars: Vec<char> = io_input.chars().collect();
                 let middle_chars: String = chars[1..chars.len() - 1].iter().collect();
                 <$type>::from_str(&middle_chars).expect("Parse err, TODO")
@@ -22,13 +22,12 @@ impl IoDeSer<String> for String {
         format!("|{}|", self)
     }
 
-    fn from_io_string(io_input: String) -> String {
+    fn from_io_string(io_input: &mut String) -> String {
         let chars: Vec<char> = io_input.chars().collect();
         let middle_chars: String = chars[1..chars.len() - 1].iter().collect();
         middle_chars
     }
 }
-
 
 impl_iodeser_primitive!(i8);
 impl_iodeser_primitive!(i16);

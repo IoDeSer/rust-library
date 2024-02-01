@@ -10,4 +10,3 @@ edition = "2021"
 
 [dependencies]
 deser = { path = "deser" }
-num-traits = "0.2.15"
