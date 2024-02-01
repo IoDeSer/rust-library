@@ -3,13 +3,13 @@ mod arrays;
 
 pub use deser::*;
 
-pub struct IoSerialization<T: IoDeSer<T>>{
-    pub obj: T,
+pub struct IoSerialization<'a, T>{
+    pub obj: &'a T,
     pub tab: u8,
 }
 
-impl<T: IoDeSer<T>> IoSerialization<T> {
-    pub fn begin(obj: T)->IoSerialization<T>{
+impl<'a, T: IoDeSer> IoSerialization<'a, T> {
+    pub fn begin(obj: &'a T)->IoSerialization<'a, T>{
         IoSerialization{ obj, tab: 0 }
     }
 
@@ -17,19 +17,19 @@ impl<T: IoDeSer<T>> IoSerialization<T> {
         self.obj.to_io_string(self.tab)
     }
 
-    pub fn next(obj: T, tab: u8)->IoSerialization<T>{
+    pub fn next(obj: &'a T, tab: u8)->IoSerialization<'a, T>{
         IoSerialization{ obj, tab }
     }
 }
 
-pub fn to_io_string<T: IoDeSer<T>>(obj: T) -> String{
+pub fn to_io_string<T: IoDeSer>(obj: &T) -> String{
     let ser = IoSerialization::begin(obj);
     ser.ser()
 }
 
-pub trait IoDeSer<T>{ //TODO some errors when using generic struct<T> as T
-    fn to_io_string(self, tab: u8)->String;
-    fn from_io_string(io_input:&mut String)->T;
+pub trait IoDeSer{ //TODO some errors when using generic struct<T> as T
+    fn to_io_string(&self, tab: u8)->String;
+    fn from_io_string(io_input:&mut String)->Self;
 }
 
 

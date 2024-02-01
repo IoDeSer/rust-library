@@ -16,13 +16,12 @@ use std::str::FromStr;
 // }
 
 
-impl<T: IoDeSer<T>> IoDeSer<Vec<T>> for Vec<T>{
-	fn to_io_string(self, tab: u8) -> String {
-		format!("|\n{}\n{}|",iterable_ser(self.into_iter(), tab), (0..tab).map(|_| "\t").collect::<String>())
+impl<T: IoDeSer> IoDeSer for Vec<T>{
+	fn to_io_string(&self, tab: u8) -> String {
+		format!("|\n{}\n{}|",iterable_ser(&mut self.into_iter(), tab), (0..tab).map(|_| "\t").collect::<String>())
 	}
 
 	fn from_io_string(io_input: &mut String) -> Vec<T> {
-		//todo!()
 		delete_tabulator(io_input);
 		let mut objects: Vec<&str> = io_input.split("\n+\n").collect();
 		if objects.is_empty(){
@@ -42,7 +41,7 @@ impl<T: IoDeSer<T>> IoDeSer<Vec<T>> for Vec<T>{
 	}
 }
 
-fn iterable_ser<X: IoDeSer<X>,T: Iterator<Item = X>>(obj: T, tab: u8)->String{
+fn iterable_ser<'a,X: IoDeSer+ 'a,T: Iterator<Item = &'a X>>(obj: T, tab: u8)->String{
 	let mut is_first = true;
 	let mut array_str = String::new();
 

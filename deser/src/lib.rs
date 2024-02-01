@@ -56,7 +56,7 @@ pub fn opis_derive_macro(input: TokenStream) -> TokenStream {
 							if !#is_first { "\n" } else { "" },
 								(0..tab+1).map(|_| "\t").collect::<String>(),
 								#field_name_str,
-								IoSerialization::next(self.#field_name, tab + 1).ser()
+								IoSerialization::next(&self.#field_name, tab + 1).ser()
 							);
 						}
 					);
@@ -77,7 +77,7 @@ pub fn opis_derive_macro(input: TokenStream) -> TokenStream {
 
 
 	to_io_string_tokens_implementation = quote!{
-			fn to_io_string(self, tab: u8)->String{
+			fn to_io_string(&self, tab: u8)->String{
 				let mut string_output = String::from("|\n");
                 #to_io_string_tokens_implementation
 				format!("{}\n{}|",string_output, (0..tab).map(|_| "\t").collect::<String>())
@@ -96,10 +96,11 @@ pub fn opis_derive_macro(input: TokenStream) -> TokenStream {
 fn implement_iodeser_trait(struct_name: &Ident, to_io_string_tokens_implementation:proc_macro2::TokenStream
 						   , vector_field_maker:proc_macro2::TokenStream, tokens_from_io:proc_macro2::TokenStream)->proc_macro2::TokenStream{
 	quote! {
-        impl IoDeSer<#struct_name> for #struct_name{
+        impl IoDeSer for #struct_name{
 
 
 			#to_io_string_tokens_implementation
+
 
 
             fn from_io_string(io_input:&mut String)->#struct_name{
@@ -160,6 +161,9 @@ fn implement_iodeser_trait(struct_name: &Ident, to_io_string_tokens_implementati
 
 					line_pointer=line_pointer+1;
 				}
+
+
+				// TODO make 'variable_and_io_str_value' order match fields = #vector_field_maker order
 
                 #struct_name { #tokens_from_io }
             }

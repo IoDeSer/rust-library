@@ -14,7 +14,7 @@ macro_rules! compare_from {
                 println!("vs");
                 println!("{:?}", &copy);
                 println!();
-                assert_eq!($original, copy);
+                assert_eq!($original, &copy);
             }
         }
     };
