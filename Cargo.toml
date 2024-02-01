@@ -10,3 +10,4 @@ edition = "2021"
 
 [dependencies]
 deser = { path = "deser" }
+paste = "1.0.14"

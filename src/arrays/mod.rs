@@ -33,7 +33,6 @@ impl<T: IoDeSer<T>> IoDeSer<Vec<T>> for Vec<T>{
 			}
 		}
 
-
 		let mut v = Vec::<T>::new();
 		for obj in objects {
 			v.push(from_io!(obj.trim().to_string(), T));
