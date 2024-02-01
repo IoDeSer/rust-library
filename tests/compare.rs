@@ -1,5 +1,3 @@
-use std::fmt::Debug;
-
 #[macro_export]
 macro_rules! compare_from {
     ($original: expr,$type:ty, $name:expr) => {

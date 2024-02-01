@@ -52,12 +52,12 @@ format!("|
 \t|-53539|
 \t+
 \t|123|
-|", i32::MAX, i32::MIN),Veci32);
+|", i32::MAX, i32::MIN),vec_i32);
 
 compare_to!(&Test2 { char_eg: 'M'},
 "|
 \tchar_eg->|M|
-|", ClassPrimitive);
+|", class_primitive);
 
 compare_to!(&Person { name: "example_name".to_string(), age: 1, test: Test { year: 2023, test2: Test2 { char_eg: 'z' } } },
 "|
@@ -69,4 +69,24 @@ compare_to!(&Person { name: "example_name".to_string(), age: 1, test: Test { yea
 \t\t\tchar_eg->|z|
 \t\t|
 \t|
-|", ClassInClass);
+|", class_in_class);
+
+compare_to!(&[1,5,-231],
+"|
+\t|1|
+\t+
+\t|5|
+\t+
+\t|-231|
+|", array);
+
+compare_to!(&[Test2{char_eg:'Z'},Test2{char_eg:'1'}],
+"|
+\t|
+\t\tchar_eg->|Z|
+\t|
+\t+
+\t|
+\t\tchar_eg->|1|
+\t|
+|", array_class);

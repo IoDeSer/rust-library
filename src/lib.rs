@@ -22,10 +22,9 @@ impl<'a, T: IoDeSer> IoSerialization<'a, T> {
     }
 }
 
-pub fn to_io_string<T: IoDeSer>(obj: &T) -> String{
-    let ser = IoSerialization::begin(obj);
-    ser.ser()
-}
+/*pub fn to_io_string<T: IoDeSer>(obj: &T) -> String{
+    IoSerialization::begin(obj).ser()
+}*/
 
 pub trait IoDeSer{ //TODO some errors when using generic struct<T> as T
     fn to_io_string(&self, tab: u8)->String;
@@ -66,5 +65,5 @@ macro_rules! to_io{
 
 
 
-// TODO: hashmaps, arrays (slices/anything Iterable<>), *whole deserialization*
-// DONE: vectors, primitives, classes, strings
+// TODO: hashmaps, generics, nested elements in classes (classes and arrays/vectors)
+// DONE: vectors, primitives, classes (primitives only), strings, arrays(check better?)
