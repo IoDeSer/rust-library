@@ -1,5 +1,6 @@
 mod primitives;
 mod arrays;
+mod map;
 
 pub use deser::*;
 

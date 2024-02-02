@@ -1,5 +1,6 @@
 mod compare;
 
+use std::collections::HashMap;
 use io_de_ser::*;
 
 #[derive(IoDeSer, Debug, Default)]
@@ -90,3 +91,45 @@ compare_to!(&[Test2{char_eg:'Z'},Test2{char_eg:'1'}],
 \t\tchar_eg->|1|
 \t|
 |", array_class);
+
+
+/*compare_to!(&HashMap::from([(345435735, "true".to_string()),(-354950,"false".to_string()),(-34,"asdef".to_string())
+        ,(-3123,"arrgghnghn".to_string()),(0,"skjhrkghb".to_string()),(213545,"krgjkbjtkbjt".to_string())]),
+"|
+\t|
+\t\t|345435735|
+\t\t+
+\t\t|true|
+\t|
+\t+
+\t|
+\t\t|-3123|
+\t\t+
+\t\t|arrgghnghn|
+\t|
+\t+
+\t|
+\t\t|0|
+\t\t+
+\t\t|skjhrkghb|
+\t|
+\t+
+\t|
+\t\t|-34|
+\t\t+
+\t\t|asdef|
+\t|
+\t+
+\t|
+\t\t|213545|
+\t\t+
+\t\t|krgjkbjtkbjt|
+\t|
+\t+
+\t|
+\t\t|-354950|
+\t\t+
+\t\t|false|
+\t|
+|
+", hashmap_primitive);*/

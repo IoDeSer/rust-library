@@ -3,7 +3,7 @@ extern crate proc_macro;
 
 use proc_macro2::Ident;
 use proc_macro::TokenStream;
-use syn::{parse_macro_input, DeriveInput, Visibility};
+use syn::{parse_macro_input, DeriveInput, Visibility, TypeGenerics, WhereClause, ImplGenerics};
 use quote::quote;
 
 
@@ -12,6 +12,7 @@ use quote::quote;
 pub fn opis_derive_macro(input: TokenStream) -> TokenStream {
 	let input = parse_macro_input!(input as DeriveInput);
 	let struct_name = &input.ident;
+	let (impl_generics, ty_generics, where_clause) = &input.generics.split_for_impl();
 
 
 	let mut to_io_string_tokens_implementation = quote!{};
@@ -88,22 +89,24 @@ pub fn opis_derive_macro(input: TokenStream) -> TokenStream {
 	implement_iodeser_trait(struct_name,
 							to_io_string_tokens_implementation,
 							vector_field_maker,
-							tokens_from_io).into()
+							tokens_from_io,
+							impl_generics,ty_generics, where_clause).into()
 }
 
 
 
 fn implement_iodeser_trait(struct_name: &Ident, to_io_string_tokens_implementation:proc_macro2::TokenStream
-						   , vector_field_maker:proc_macro2::TokenStream, tokens_from_io:proc_macro2::TokenStream)->proc_macro2::TokenStream{
+						   , vector_field_maker:proc_macro2::TokenStream, tokens_from_io:proc_macro2::TokenStream,
+						   impl_generics: &ImplGenerics, ty_generics:&TypeGenerics, where_clause: &Option<&WhereClause>)->proc_macro2::TokenStream{
 	quote! {
-        impl IoDeSer for #struct_name{
+        impl #impl_generics IoDeSer for #struct_name #ty_generics #where_clause {
 
 
 			#to_io_string_tokens_implementation
 
 
 
-            fn from_io_string(io_input:&mut String)->#struct_name{
+            fn from_io_string(io_input:&mut String)->Self{
 
 				// DELETE TABULATOR
 				let mut ret = String::new();
