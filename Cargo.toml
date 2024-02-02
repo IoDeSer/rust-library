@@ -1,9 +1,9 @@
 [package]
 name = "io_de_ser"
-version = "0.0.0"
+version = "0.0.1"
 authors = ["Io-Maciek"]
-description = "A `cargo generate` template for quick-starting a procedural macro crate"
-keywords = ["template", "proc_macro", "procmacro"]
+description = "Crate that allows to read from and write to .io file format."
+keywords = ["io", "file_format"]
 edition = "2021"
 
 [lib]
