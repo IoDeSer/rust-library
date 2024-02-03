@@ -1,5 +1,5 @@
 [package]
-name = "io_deser"
+name = "iodeser_derive"
 version = "0.0.2"
 authors = ["Io-Maciek"]
 description = "Procedural macro crate for generating implementation of IoDeSer trait for structs"

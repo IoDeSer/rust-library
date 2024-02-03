@@ -1,7 +1,7 @@
 mod compare;
 
 use std::collections::HashMap;
-use io_de_ser::*;
+use iodeser::*;
 
 #[derive(IoDeSer, Debug, Default)]
 struct Person {
