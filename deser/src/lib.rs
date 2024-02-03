@@ -1,14 +1,11 @@
 extern crate proc_macro;
 
-
-use proc_macro2::{Ident};
+use proc_macro2::{Ident, Literal};
 use proc_macro::TokenStream;
 use syn::{parse_macro_input, DeriveInput, Visibility, TypeGenerics, WhereClause, ImplGenerics};
 use quote::quote;
 
-
-
-#[proc_macro_derive(IoDeSer)]
+#[proc_macro_derive(IoDeSer, attributes(io_name, io_order))]
 pub fn opis_derive_macro(input: TokenStream) -> TokenStream {
 	let input = parse_macro_input!(input as DeriveInput);
 	let struct_name = &input.ident;
@@ -31,7 +28,34 @@ pub fn opis_derive_macro(input: TokenStream) -> TokenStream {
 
 					let field_name_str = field.ident.as_ref().unwrap().to_string();
 
+					// default name without io_name attribute
+					let mut field_name_setter = quote!{#field_name_str};
+					let mut option_field_file_name = quote!{None};
 
+					// helper attributes for changing order and name
+					for attribute in &field.attrs{
+						match attribute.path.get_ident().unwrap().to_string().as_str(){
+							"io_name"=>{
+								if attribute.tokens.is_empty(){
+									panic!("The 'io_name' macro in the struct '{}' for the field '{}' expects exactly one String argument, but none were provided", struct_name, field_name_str)
+								}
+
+								let new_field_name = attribute.parse_args::<Literal>()
+									.expect(&format!("The 'io_name' macro in the struct '{}' for the field '{}' expected exactly one String argument (check: '{}'), but more were provided or in the wrong format.",
+													 struct_name.to_string(),
+													field_name_str,
+													 &attribute.tokens));
+
+								field_name_setter = quote!{#new_field_name};
+								option_field_file_name = quote!{Some(#new_field_name)};
+							}
+							_=>{}
+						}
+					}
+
+					vector_field_maker.extend(quote!{
+						(#field_name_str, #option_field_file_name),
+					});
 
 
 
@@ -41,19 +65,12 @@ pub fn opis_derive_macro(input: TokenStream) -> TokenStream {
 							#field_name: from_io!(variable_and_io_str_value[#index_of as usize][1], #field_type) , //TODO
 						});
 
-
-
-					vector_field_maker.extend(quote!{
-						#field_name_str,
-					});
-
-
 					to_io_string_tokens_implementation.extend(
 						quote! {
 							string_output += &format!("{}{}{}->{}",
 							if !#is_first { "\n" } else { "" },
 								(0..tab+1).map(|_| "\t").collect::<String>(),
-								#field_name_str,
+								#field_name_setter,
 								IoSerialization::next(&self.#field_name, tab + 1).ser()
 							);
 						}
@@ -124,7 +141,7 @@ fn implement_iodeser_trait(struct_name: &Ident, to_io_string_tokens_implementati
 				let lines:Vec<&str> = io_input.lines().collect();
 				let mut line_pointer = 0;
 
-				let fields = #vector_field_maker;
+				let fields:Vec<(&str, Option<&str>)> = #vector_field_maker;
 
 				while line_pointer < lines.len(){
 					let current_line = lines[line_pointer];
@@ -139,8 +156,19 @@ fn implement_iodeser_trait(struct_name: &Ident, to_io_string_tokens_implementati
 					let mut found_property = "";
 
 					for f in fields.iter(){
-						if variable_name.eq(f){
-							found_property = f;
+						let original_name = f.0;
+						let custom_name = f.1;
+						match custom_name{
+							Some(name)=>{
+								if variable_name.eq(name){
+									found_property = name;
+								}
+							},
+							None=>{
+								if variable_name.eq(original_name){
+									found_property = original_name;
+								}
+							}
 						}
 					}
 
