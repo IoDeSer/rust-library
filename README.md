@@ -17,9 +17,12 @@ The current status of both serialization and deserialization:
 - [ ] Slices
 
 ### Capabilities
- - Serialization of [supported types](Functions and plans) using macro **to_io!()** using objects reference,
- - Deserialization of [supporeted types](Functions and plans) using macro **from_io!()** using .io formatted String and wanted objects type,
+ - Serialization of [supported types](#functions-and-plans) using macro **to_io!()** using objects reference,
+ - Deserialization of [supported types](#functions-and-plans) using macro **from_io!()** using .io formatted String and wanted objects type,
  - **Only decorative!** support for renaming fields in struct in and from .io formatted String using **#[io_name()]** helper macro using String literal as argument.
+
+See [example](#example-usage) below for usage of those capabilities.
+
 
 ### Example usage
 ```rust
