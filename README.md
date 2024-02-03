@@ -2,12 +2,13 @@
 Repository stores code for Rust library that allows to read from and write to .io file format.
 
 ### Functions and plans
+The current status of both serialization and deserialization:
 - [X] Primitive types
 - [X] Strings
 - [X] Arrays
 - [X] Vectors
 - [X] Hashmaps
-- [X] Classes (with named fields)
+- [X] Structs (with named fields)
 - [X] Generics
 - [X] Combinations of all above
 - [ ] Tuples
