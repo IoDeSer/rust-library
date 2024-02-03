@@ -19,7 +19,7 @@ Repository stores code for Rust library that allows to read from and write to .i
 ```rust
 use io_de_ser::*; // required import
 
-#[derive(IoDeSer)] // required macro derive IoDeSer, PartialEq is not required
+#[derive(IoDeSer)] // required macro derive
 struct Person<T : IoDeSer> {
     pub name: String,
     pub last_name: String,
@@ -27,7 +27,7 @@ struct Person<T : IoDeSer> {
     pub address: Address<T>,
 }
 
-#[derive(IoDeSer)] // required macro derive IoDeSer, PartialEq is not required
+#[derive(IoDeSer)] // required macro derive
 struct Address<T : IoDeSer> {
     pub city: String,
     pub number: T,
