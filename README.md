@@ -26,7 +26,7 @@ See [example](#example-usage) below for usage of those capabilities.
 
 ### Example usage
 ```rust
-use io_de_ser::*; // required import
+use iodeser::*; // required import
 
 #[derive(IoDeSer, Debug)] // required macro derive IoDeSer, Debug is not required
 struct Person<T : IoDeSer> {
