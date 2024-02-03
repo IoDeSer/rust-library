@@ -1,6 +1,7 @@
+#![allow(dead_code)]
+
 use std::collections::{LinkedList, VecDeque};
 use crate::{delete_tabulator, from_io, IoDeSer};
-
 
 
 impl <T: IoDeSer> IoDeSer for LinkedList<T>{

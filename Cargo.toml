@@ -7,7 +7,6 @@ keywords = ["io", "file_format", "serialization", "deserialization"]
 edition = "2021"
 repository = "https://github.com/IoDeSer/rust-library"
 license-file = "LICENSE"
-license = "MIT"
 readme = "README.md"
 
 [lib]

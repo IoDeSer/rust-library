@@ -1,7 +1,8 @@
+#![allow(dead_code)]
+
 use std::collections::{BTreeMap, HashMap};
 use std::hash::Hash;
 use crate::{delete_tabulator, from_io, IoDeSer};
-
 impl <T:IoDeSer, K:IoDeSer> IoDeSer for BTreeMap<T, K>{
     fn to_io_string(&self, tab: u8) -> String {
         todo!()
