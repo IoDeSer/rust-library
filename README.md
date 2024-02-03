@@ -7,9 +7,11 @@ Repository stores code for Rust library that allows to read from and write to .i
 - [X] Arrays
 - [X] Vectors
 - [X] Hashmaps
-- [X] Classes
+- [X] Classes (with named fields)
 - [X] Generics
 - [X] Combinations of all above
+- [ ] Tuples
+- [ ] Tuple structs
 - [ ] &str type
 - [ ] Slices
 

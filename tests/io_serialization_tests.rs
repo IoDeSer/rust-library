@@ -106,3 +106,18 @@ compare_to!(&HashMap::from([(345435735, Test2{char_eg:'i'})]),
 \t\t|
 \t|
 |", hashmap_class);
+
+compare_to!(&[0i32;0],
+"|
+
+|", array_empty);
+
+compare_to!(&Vec::<char>::new(),
+"|
+
+|", vec_empty);
+
+compare_to!(&HashMap::<char, i32>::new(),
+"|
+
+|", hashmap_empty);
