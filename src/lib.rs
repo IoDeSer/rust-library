@@ -5,8 +5,8 @@ mod sets;
 mod misc;
 
 #[macro_use]
-pub extern crate deser;
-pub use deser::*;
+pub extern crate io_deser;
+pub use io_deser::*;
 
 pub struct IoSerialization<'a, T>{
     pub obj: &'a T,
