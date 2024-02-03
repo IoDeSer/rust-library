@@ -12,6 +12,6 @@ license="MIT"
 [lib]
 
 [dependencies]
-deser = { path = "deser", version = "0.0.2" }
+deser = { path = "deser", version = "^0.0.2" }
 paste = "1.0.14"
 array-init = "2.1.0"
