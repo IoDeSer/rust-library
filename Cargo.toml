@@ -1,17 +1,17 @@
 [package]
 name = "io_de_ser"
-version = "0.0.3"
+version = "0.1.1"
 authors = ["Io-Maciek"]
 description = "Crate that allows to read from and write to .io file format."
 keywords = ["io", "file_format", "serialization", "deserialization"]
 edition = "2021"
 repository = "https://github.com/IoDeSer/rust-library"
-license-file = "LICENSE"
 readme = "README.md"
+license="MIT"
 
 [lib]
 
 [dependencies]
-deser = { path = "deser", version = "0.0.1" }
+deser = { path = "deser", version = "0.0.2" }
 paste = "1.0.14"
 array-init = "2.1.0"

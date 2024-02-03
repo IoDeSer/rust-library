@@ -4,6 +4,8 @@ mod map;
 mod sets;
 mod misc;
 
+#[macro_use]
+pub extern crate deser;
 pub use deser::*;
 
 pub struct IoSerialization<'a, T>{
