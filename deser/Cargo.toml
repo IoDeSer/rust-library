@@ -1,8 +1,8 @@
 [package]
 name = "deser"
-version = "0.0.0"
+version = "0.0.1"
 authors = ["Io-Maciek"]
-description = "A `cargo generate` template for quick-starting a procedural macro crate"
+description = "Procedural macro crate for generating implementation of IoDeSer trait for structs"
 keywords = ["template", "proc_macro", "procmacro"]
 edition = "2021"
 
