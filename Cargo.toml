@@ -1,9 +1,9 @@
 [package]
 name = "io_de_ser"
-version = "0.0.1"
+version = "0.0.2"
 authors = ["Io-Maciek"]
 description = "Crate that allows to read from and write to .io file format."
-keywords = ["io", "file_format"]
+keywords = ["io", "file_format", "serialization", "deserialization"]
 edition = "2021"
 
 [lib]

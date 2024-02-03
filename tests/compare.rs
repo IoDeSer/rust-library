@@ -6,8 +6,9 @@ macro_rules! compare_from {
             fn [<deserialization_ $name>]()
             {
                 let io_out = to_io!($original);
-                let copy = from_io!(io_out, $type);
                 println!("DESERIALIZATION TEST FOR {}", stringify!($name));
+                println!("{}\nResult:", io_out);
+                let copy = from_io!(io_out.clone(), $type);
                 println!("{:?}", $original);
                 println!("vs");
                 println!("{:?}", &copy);

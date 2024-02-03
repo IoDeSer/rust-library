@@ -1,6 +1,8 @@
 mod primitives;
 mod arrays;
 mod map;
+mod sets;
+mod misc;
 
 pub use deser::*;
 
@@ -27,9 +29,10 @@ impl<'a, T: IoDeSer> IoSerialization<'a, T> {
     IoSerialization::begin(obj).ser()
 }*/
 
-pub trait IoDeSer{ //TODO some errors when using generic struct<T> as T
+pub trait IoDeSer{
+    //type Type;
     fn to_io_string(&self, tab: u8)->String;
-    fn from_io_string(io_input:&mut String)->Self;
+    fn from_io_string(io_input:&mut String)->Self; // Self::Type
 }
 
 
@@ -66,5 +69,5 @@ macro_rules! to_io{
 
 
 
-// TODO: hashmaps, generics, nested elements in classes (classes and arrays/vectors)
-// DONE: vectors, primitives, classes (primitives only), strings, arrays(check better?)
+// TODO: fix errors on empty Vectors (vec![]) [de]serialization
+// TODO DONE: vectors, primitives, classes (check better), strings, arrays(check better?)

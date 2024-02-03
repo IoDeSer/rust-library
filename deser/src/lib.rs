@@ -1,7 +1,7 @@
 extern crate proc_macro;
 
 
-use proc_macro2::Ident;
+use proc_macro2::{Ident};
 use proc_macro::TokenStream;
 use syn::{parse_macro_input, DeriveInput, Visibility, TypeGenerics, WhereClause, ImplGenerics};
 use quote::quote;
@@ -27,8 +27,6 @@ pub fn opis_derive_macro(input: TokenStream) -> TokenStream {
 			for field in &fields.named {
 				if matches!(field.vis, Visibility::Public(_)) {
 					let field_type = &field.ty;
-
-
 					let field_name = field.ident.as_ref();
 
 					let field_name_str = field.ident.as_ref().unwrap().to_string();
@@ -37,14 +35,13 @@ pub fn opis_derive_macro(input: TokenStream) -> TokenStream {
 
 
 
-
-
-
 					//TODO handle: what if #field_name will have missmatch with variable_and_io_str_value vector
 					// (different order of fields in io string, than in result struct)
-					tokens_from_io.extend(quote!{
-						#field_name: from_io!(variable_and_io_str_value[#index_of as usize][1], #field_type) , //TODO
-					});
+					tokens_from_io.extend(quote! {
+							#field_name: from_io!(variable_and_io_str_value[#index_of as usize][1], #field_type) , //TODO
+						});
+
+
 
 					vector_field_maker.extend(quote!{
 						#field_name_str,
@@ -100,7 +97,7 @@ fn implement_iodeser_trait(struct_name: &Ident, to_io_string_tokens_implementati
 						   impl_generics: &ImplGenerics, ty_generics:&TypeGenerics, where_clause: &Option<&WhereClause>)->proc_macro2::TokenStream{
 	quote! {
         impl #impl_generics IoDeSer for #struct_name #ty_generics #where_clause {
-
+			//type Type = #struct_name #ty_generics;
 
 			#to_io_string_tokens_implementation
 
@@ -148,19 +145,42 @@ fn implement_iodeser_trait(struct_name: &Ident, to_io_string_tokens_implementati
 					}
 
 
+
 					if found_property==""{
 						panic!("Field '{}' was not found in struct '{}'",variable_name, stringify!(#struct_name));
 					}
 
-					// TODO this for now only works for primitive values
-					variable_and_io_str_value.push(vec![found_property.to_string(), assignment[1].to_string()]);
-					// if is primitive or is a string
 
 
+					// primitive type
+					if assignment[1].len() > 1{
+						variable_and_io_str_value.push(vec![found_property.to_string(), assignment[1].to_string()]);
+					}else{ // class / array / vector
+						line_pointer=line_pointer+1;
 
-					// if is a class or array/vector
+						if lines[line_pointer] == "|"{
+							line_pointer=line_pointer+1;
+							variable_and_io_str_value.push(vec![found_property.to_string(), "|\n\t\n|".to_string()]);
+							continue;
+						}
 
+						let new_object_start = line_pointer;
 
+						while lines[line_pointer] != "|" {
+							line_pointer = line_pointer+1;
+						}
+
+						let new_object_end = line_pointer;
+						let mut new_object_string = String::from("|\n");
+
+						for l2 in new_object_start..new_object_end {
+							new_object_string += &format!("{}\n", lines[l2]);
+						}
+
+						new_object_string+="\n|";
+
+						variable_and_io_str_value.push(vec![found_property.to_string(), new_object_string]);
+					}
 
 					line_pointer=line_pointer+1;
 				}
@@ -172,6 +192,28 @@ fn implement_iodeser_trait(struct_name: &Ident, to_io_string_tokens_implementati
             }
         }
     }
+}
+/*
+macro_rules! check_primitive {
+    ($ty: expr, $($obj:expr),+) => {
+		match $ty{
+			$(
+			Type::Path(type_path) if type_path.clone().into_token_stream().to_string() == stringify!($obj) =>
+			{
+				true
+			},
+			)*
+			_=>false,
+		}
+	};
+}
+
+use syn::Type;
+use quote::ToTokens;
+
+fn is_primitive(ty: &Type)->bool{
+	check_primitive!(ty, bool, String, i8, i16, i32, i64, i128, isize,u8, u16, u32, u64, u128, usize,
+	f32, f64, bool, char, String)
 }
 
 fn is_array_type(field_type: &syn::Type) -> bool {
@@ -186,4 +228,4 @@ fn is_slice_type(field_type: &syn::Type) -> bool {
 		}
 	}
 	false
-}
+}*/

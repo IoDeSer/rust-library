@@ -4,11 +4,13 @@ use std::str::FromStr;
 macro_rules! impl_iodeser_primitive {
     ($type:ty) => {
         impl IoDeSer for $type {
+            //type Type = $type;
+
             fn to_io_string(&self, _tab: u8) -> String {
                 format!("|{}|", self)
             }
 
-            fn from_io_string(io_input: &mut String) -> $type {
+            fn from_io_string(io_input: &mut String) -> Self {
                 let chars: Vec<char> = io_input.chars().collect();
                 let middle_chars: String = chars[1..chars.len() - 1].iter().collect();
                 <$type>::from_str(&middle_chars).expect("Parse err, TODO")
@@ -18,16 +20,46 @@ macro_rules! impl_iodeser_primitive {
 }
 
 impl IoDeSer for String {
-    fn to_io_string(&self, _tab: u8) -> String {
+    //type Type = String;
+    fn to_io_string(&self, _tab: u8) -> String  {
         format!("|{}|", self)
     }
 
-    fn from_io_string(io_input: &mut String) -> String {
+    fn from_io_string(io_input: &mut String) -> Self {
         let chars: Vec<char> = io_input.chars().collect();
         let middle_chars: String = chars[1..chars.len() - 1].iter().collect();
         middle_chars
     }
 }
+
+
+/*impl IoDeSer for str {
+    type Type = String;
+    fn to_io_string(&self, _tab: u8) -> String {
+        format!("|{}|", self)
+    }
+
+    fn from_io_string(io_input: &mut String) -> Self::Type {
+        let chars: Vec<char> = io_input.chars().collect();
+        let middle_chars: String = chars[1..chars.len() - 1].iter().collect();
+        middle_chars
+    }
+}
+
+impl IoDeSer for &str {
+    type Type = String;
+    fn to_io_string(&self, _tab: u8) -> String {
+        format!("|{}|", self)
+    }
+
+    fn from_io_string(io_input: &mut String) -> Self::Type {
+        let chars: Vec<char> = io_input.chars().collect();
+        let middle_chars: String = chars[1..chars.len() - 1].iter().collect();
+        middle_chars
+    }
+}
+*/
+
 
 impl_iodeser_primitive!(i8);
 impl_iodeser_primitive!(i16);
