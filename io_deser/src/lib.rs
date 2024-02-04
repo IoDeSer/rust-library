@@ -4,6 +4,33 @@ use proc_macro2::{Ident, Literal};
 use proc_macro::TokenStream;
 use syn::{parse_macro_input, DeriveInput, Visibility, TypeGenerics, WhereClause, ImplGenerics};
 use quote::quote;
+use crate::fields_ordering::FieldOrder;
+use crate::fields_renaming::parse_fields_naming;
+
+mod fields_ordering;
+mod fields_renaming;
+
+
+fn create_fields_from_data<'a>(input: &'a DeriveInput)->Vec::<FieldOrder<'a>>{
+	let mut fields_order = Vec::<FieldOrder>::new();
+
+	// iterate through all fields
+	if let syn::Data::Struct(ref data) = input.data {
+		if let syn::Fields::Named(ref fields) = data.fields {
+			for field in &fields.named {
+				if matches!(field.vis, Visibility::Public(_)) {
+
+					fields_order.push(FieldOrder::new(field, &input.ident));
+
+				}
+			}
+		}
+	}
+
+	fields_order.sort();
+	fields_order
+}
+
 
 #[proc_macro_derive(IoDeSer, attributes(io_name, io_order))]
 pub fn opis_derive_macro(input: TokenStream) -> TokenStream {
@@ -11,83 +38,50 @@ pub fn opis_derive_macro(input: TokenStream) -> TokenStream {
 	let struct_name = &input.ident;
 	let (impl_generics, ty_generics, where_clause) = &input.generics.split_for_impl();
 
+	let fields_order = create_fields_from_data(&input);
+
 
 	let mut to_io_string_tokens_implementation = quote!{};
 	let mut vector_field_maker = quote!{};
 	let mut tokens_from_io = quote!{};
 
-	let mut is_first = true;
-	let mut index_of = 0;
 
-	if let syn::Data::Struct(ref data) = input.data {
-		if let syn::Fields::Named(ref fields) = data.fields {
-			for field in &fields.named {
-				if matches!(field.vis, Visibility::Public(_)) {
-					let field_type = &field.ty;
-					let field_name = field.ident.as_ref();
-
-					let field_name_str = field.ident.as_ref().unwrap().to_string();
-
-					// default name without io_name attribute
-					let mut field_name_setter = quote!{#field_name_str};
-					let mut option_field_file_name = quote!{None};
-
-					// helper attributes for changing order and name
-					for attribute in &field.attrs{
-						match attribute.path.get_ident().unwrap().to_string().as_str(){
-							"io_name"=>{
-								if attribute.tokens.is_empty(){
-									panic!("The 'io_name' macro in the struct '{}' for the field '{}' expects exactly one String argument, but none were provided", struct_name, field_name_str)
-								}
-
-								let new_field_name = attribute.parse_args::<Literal>()
-									.expect(&format!("The 'io_name' macro in the struct '{}' for the field '{}' expected exactly one String argument (check: '{}'), but more were provided or in the wrong format.",
-													 struct_name.to_string(),
-													field_name_str,
-													 &attribute.tokens));
-
-								field_name_setter = quote!{#new_field_name};
-								option_field_file_name = quote!{Some(#new_field_name)};
-							}
-							_=>{}
-						}
-					}
-
-					vector_field_maker.extend(quote!{
-						(#field_name_str, #option_field_file_name),
-					});
+	for (index_of,field_o) in fields_order.iter().enumerate() {
+		let field = field_o.field;
+		let field_type = &field.ty;
+		let field_name = field.ident.as_ref();
+		let field_name_str = field.ident.as_ref().unwrap().to_string();
 
 
+		let (field_name_setter, option_field_file_name) = parse_fields_naming(&field,struct_name);
 
-					//TODO handle: what if #field_name will have missmatch with variable_and_io_str_value vector
-					// (different order of fields in io string, than in result struct)
-					tokens_from_io.extend(quote! {
-							#field_name: from_io!(variable_and_io_str_value[#index_of as usize][1], #field_type) , //TODO
-						});
 
-					to_io_string_tokens_implementation.extend(
-						quote! {
-							string_output += &format!("{}{}{}->{}",
-							if !#is_first { "\n" } else { "" },
-								(0..tab+1).map(|_| "\t").collect::<String>(),
-								#field_name_setter,
-								IoSerialization::next(&self.#field_name, tab + 1).ser()
-							);
-						}
+		// vector with real field name and otional renaming    vec![(in_rust_real_name, optional_renaming), (...)]
+		vector_field_maker.extend(quote!{
+			(#field_name_str, #option_field_file_name),
+		});
+
+
+		// field initialization inside struct definition with: its_name: deserialized_io_string
+		tokens_from_io.extend(quote! {
+			#field_name: from_io!(variable_and_io_str_value[#index_of as usize][1], #field_type) ,
+		});
+
+
+		to_io_string_tokens_implementation.extend(
+			quote! {
+					string_output += &format!("{}{}{}->{}",
+						if #index_of > 0 { "\n" } else { "" },
+						(0..tab+1).map(|_| "\t").collect::<String>(),
+						#field_name_setter,
+						IoSerialization::next(&self.#field_name, tab + 1).ser()
 					);
-
-				}
-
-				if is_first {
-					is_first = false;
-				}
-				index_of = index_of + 1;
 			}
-		}
+		);
+
 	}
 
-
-
+	// final token initialization of vector with field names / optional renamings
 	vector_field_maker = quote!{vec![#vector_field_maker]};
 
 
@@ -214,46 +208,9 @@ fn implement_iodeser_trait(struct_name: &Ident, to_io_string_tokens_implementati
 				}
 
 
-				// TODO make 'variable_and_io_str_value' order match fields = #vector_field_maker order
 
                 #struct_name { #tokens_from_io }
             }
         }
     }
 }
-/*
-macro_rules! check_primitive {
-    ($ty: expr, $($obj:expr),+) => {
-		match $ty{
-			$(
-			Type::Path(type_path) if type_path.clone().into_token_stream().to_string() == stringify!($obj) =>
-			{
-				true
-			},
-			)*
-			_=>false,
-		}
-	};
-}
-
-use syn::Type;
-use quote::ToTokens;
-
-fn is_primitive(ty: &Type)->bool{
-	check_primitive!(ty, bool, String, i8, i16, i32, i64, i128, isize,u8, u16, u32, u64, u128, usize,
-	f32, f64, bool, char, String)
-}
-
-fn is_array_type(field_type: &syn::Type) -> bool {
-	matches!(field_type, syn::Type::Array(_))
-}
-
-fn is_slice_type(field_type: &syn::Type) -> bool {
-	if let syn::Type::Reference(reference) = field_type {
-		if let syn::Type::Slice(_) = &*reference.elem {
-			// Jest to referencja do slice'a
-			return true;
-		}
-	}
-	false
-}*/

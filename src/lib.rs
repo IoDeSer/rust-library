@@ -66,6 +66,6 @@ macro_rules! to_io{
 
 
 // TODO: tuples, slices, tuple structs (struct X(T, T2, T3...))
-// TODO DONE: vectors, primitives, structs (check better), strings, arrays(check better?)
+// TODO DONE: vectors, primitives, structs, strings, arrays
 
 // potential solution for tuples https://docs.rs/impl-trait-for-tuples/latest/impl_trait_for_tuples/

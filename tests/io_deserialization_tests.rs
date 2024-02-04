@@ -5,8 +5,11 @@ use iodeser::*;
 
 #[derive(IoDeSer, Debug, PartialEq, Clone)]
 struct Parent<T: IoDeSer>{
+    #[io_order(LAST)]
+    #[io_name("TestClass")]
     pub x:Test,
     pub y: T,
+    #[io_order(FIRST)]
     pub z: String
 }
 
