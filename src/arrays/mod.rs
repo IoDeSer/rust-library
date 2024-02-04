@@ -1,59 +1,40 @@
 #![allow(dead_code)]
 
-use std::collections::{LinkedList, VecDeque};
+use std::collections::{HashSet, LinkedList, VecDeque, BinaryHeap, BTreeSet};
+use std::hash::Hash;
 use crate::{delete_tabulator, from_io, IoDeSer};
 
+macro_rules! create_iterable_impl {
+    ($ty:ty $(, $wh : ident)*) => {
+		impl <T: IoDeSer $(+ $wh)*> IoDeSer for $ty{
+			fn to_io_string(&self, tab: u8) -> String {
+				format!("|\n{}\n{}|",iterable_ser(&mut self.into_iter(), tab), (0..tab).map(|_| "\t").collect::<String>())
+			}
 
-impl <T: IoDeSer> IoDeSer for LinkedList<T>{
-	fn to_io_string(&self, tab: u8) -> String {
-		todo!()
-	}
+			fn from_io_string(io_input: &mut String) -> Self {
+				delete_tabulator(io_input);
+				let mut objects: Vec<&str> = io_input.split_terminator("\n+\n").collect();
 
-	fn from_io_string(io_input: &mut String) -> Self {
-		todo!()
-	}
-}
+				if objects.is_empty(){
+					if io_input.is_empty(){
+						objects = Vec::new();
+					} else{
+						objects = vec![io_input];
+					}
+				}
 
-impl <T: IoDeSer> IoDeSer for VecDeque<T>{
-	fn to_io_string(&self, tab: u8) -> String {
-		todo!()
-	}
-
-	fn from_io_string(io_input: &mut String) -> Self {
-		todo!()
-	}
-}
-
-// vectors
-impl<T: IoDeSer> IoDeSer for Vec<T>{
-	//type Type = Vec<T>;
-	fn to_io_string(&self, tab: u8) -> String {
-		format!("|\n{}\n{}|",iterable_ser(&mut self.into_iter(), tab), (0..tab).map(|_| "\t").collect::<String>())
-	}
-
-	fn from_io_string(io_input: &mut String) -> Self {
-		delete_tabulator(io_input);
-		let mut objects: Vec<&str> = io_input.split_terminator("\n+\n").collect();
-
-
-		if objects.is_empty(){
-			if io_input.is_empty(){
-				objects = Vec::new();
-			} else{
-				objects = vec![io_input];
+				objects.iter().map(|o| from_io!(o.trim().to_string(), T)).collect()
 			}
 		}
-
-
-		let mut v = Vec::<T>::new();
-		for obj in objects {
-			v.push(from_io!(obj.trim().to_string(), T));
-		}
-
-		v
-	}
+	};
 }
 
+create_iterable_impl!(HashSet<T>, Eq, Hash);
+create_iterable_impl!(BinaryHeap<T>, Ord);
+create_iterable_impl!(BTreeSet<T>, Ord);
+create_iterable_impl!(LinkedList<T>);
+create_iterable_impl!(VecDeque<T>);
+create_iterable_impl!(Vec<T>);
 
 // arrays
 impl <T: IoDeSer, const N: usize> IoDeSer for [T; N]{

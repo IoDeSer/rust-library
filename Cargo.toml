@@ -1,9 +1,9 @@
 [package]
 name = "iodeser"
-version = "0.1.3"
+version = "0.2.0"
 authors = ["Io-Maciek"]
 description = "Crate that allows to read from and write to .io file format."
-keywords = ["io", "file_format", "serialization", "deserialization"]
+keywords = ["io", "file-format", "serialization", "deserialization"]
 edition = "2021"
 repository = "https://github.com/IoDeSer/rust-library"
 readme = "README.md"

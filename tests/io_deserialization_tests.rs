@@ -1,6 +1,6 @@
 mod compare;
 
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap, HashSet, LinkedList, VecDeque};
 use iodeser::*;
 
 #[derive(IoDeSer, Debug, PartialEq, Clone)]
@@ -52,3 +52,12 @@ compare_from!(&Parent::<Vec<String>>{x:Test{x:"inside".to_string(), y:5},y:vec![
 compare_from!(&[0u8; 0], [u8; 0], array_empty);
 compare_from!(&HashMap::<String, u8>::new(), HashMap<String, u8>, hashmap_empty);
 compare_from!(&EmptyCheck{x: HashMap::new(), y:Vec::new(), z:Vec::new()}, EmptyCheck, class_full_empty);
+compare_from!(&BTreeMap::from([
+    ("Mercury".to_string(), 0.4),
+    ("Venus".to_string(), 0.7),
+    ("Earth".to_string(), 1.0),
+    ("Mars".to_string(), 1.5),
+]), BTreeMap<String, f32>, b_tree_map);
+compare_from!(&LinkedList::from([1,5,4,3,76]), LinkedList<i32>, linked_list);
+compare_from!(&VecDeque::from([1,5,4,3,76]), VecDeque<i32>, vec_queue);
+compare_from!(&HashSet::from([1,5,4,3,76]), HashSet<i32>, hash_set);

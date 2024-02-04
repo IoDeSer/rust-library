@@ -1,6 +1,6 @@
 mod compare;
 
-use std::collections::HashMap;
+use std::collections::{HashMap, LinkedList, VecDeque};
 use iodeser::*;
 
 #[derive(IoDeSer, Debug, Default)]
@@ -74,6 +74,24 @@ compare_to!(&[1,5,-231],
 \t+
 \t|-231|
 |", array);
+
+compare_to!(&VecDeque::from([1,5,-231]),
+"|
+\t|1|
+\t+
+\t|5|
+\t+
+\t|-231|
+|", vec_queue);
+
+compare_to!(&LinkedList::from([1,5,-231]),
+"|
+\t|1|
+\t+
+\t|5|
+\t+
+\t|-231|
+|", linked_list);
 
 compare_to!(&[Test2{char_eg:'Z'},Test2{char_eg:'1'}],
 "|

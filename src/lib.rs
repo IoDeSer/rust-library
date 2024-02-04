@@ -1,10 +1,8 @@
 mod primitives;
 mod arrays;
 mod map;
-mod sets;
-mod misc;
 
-#[macro_use]
+//#[macro_use]
 pub extern crate io_deser;
 pub use io_deser::*;
 
@@ -26,10 +24,6 @@ impl<'a, T: IoDeSer> IoSerialization<'a, T> {
         IoSerialization{ obj, tab }
     }
 }
-
-/*pub fn to_io_string<T: IoDeSer>(obj: &T) -> String{
-    IoSerialization::begin(obj).ser()
-}*/
 
 pub trait IoDeSer{
     //type Type;
