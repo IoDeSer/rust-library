@@ -14,11 +14,8 @@ macro_rules! impl_iodeser_primitive {
 
                 let chars: Vec<char> = io_input.chars().collect();
                 let middle_chars: String = chars[1..chars.len() - 1].iter().collect();
-<<<<<<< Updated upstream
-                <$type>::from_str(&middle_chars).expect(&format!("Can't parse value '{}' into type {}", &middle_chars, stringify!($type)))
-=======
+
                 Ok(<$type>::from_str(&middle_chars)?)
->>>>>>> Stashed changes
             }
         }
     };
