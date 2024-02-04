@@ -13,7 +13,7 @@ macro_rules! impl_iodeser_primitive {
             fn from_io_string(io_input: &mut String) -> Self {
                 let chars: Vec<char> = io_input.chars().collect();
                 let middle_chars: String = chars[1..chars.len() - 1].iter().collect();
-                <$type>::from_str(&middle_chars).expect("Parse err, TODO")
+                <$type>::from_str(&middle_chars).expect(&format!("Can't parse value '{}' into type {}", &middle_chars, stringify!($type)))
             }
         }
     };
