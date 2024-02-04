@@ -1,6 +1,10 @@
 mod primitives;
 mod arrays;
 mod map;
+mod errors;
+
+
+pub type Result<T> = std::result::Result<T, errors::Error>;
 
 //#[macro_use]
 pub extern crate io_deser;
@@ -27,7 +31,7 @@ impl<'a, T: IoDeSer> IoSerialization<'a, T> {
 
 /// Trait for serializing and deserializing objects into .io formatted String.
 pub trait IoDeSer{
-    //type Type;
+    //type Output;
 
     /// Serializes *self* into .io file format.
     ///
@@ -41,7 +45,7 @@ pub trait IoDeSer{
     ///
     /// # Arguments
     ///  * `io_input` - .io formatted String.
-    fn from_io_string(io_input:&mut String)->Self; // Self::Type
+    fn from_io_string(io_input:&mut String)->Result<Self> where Self: Sized; // Self::Type
 }
 
 
@@ -78,7 +82,7 @@ pub(crate) fn delete_tabulator(io_string: &mut String){
 /// use iodeser::*;
 ///
 /// let io_string = /* read from string or .io file */ "|\n\n\n|".to_string();
-/// let object : Vec<i32> = from_io!(io_string, Vec<i32>);
+/// let object : Vec<i32> = from_io!(io_string, Vec<i32>).unwrap();
 /// ```
 macro_rules! from_io{
     ($obj: expr, $type: ty)=>{

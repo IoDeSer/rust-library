@@ -3,15 +3,17 @@
 use std::collections::{HashSet, LinkedList, VecDeque, BinaryHeap, BTreeSet};
 use std::hash::Hash;
 use crate::{delete_tabulator, from_io, IoDeSer};
+use crate::errors::ArrayLengthError;
 
 macro_rules! create_iterable_impl {
     ($ty:ty $(, $wh : ident)*) => {
 		impl <T: IoDeSer $(+ $wh)*> IoDeSer for $ty{
+
 			fn to_io_string(&self, tab: u8) -> String {
 				format!("|\n{}\n{}|",iterable_ser(&mut self.into_iter(), tab), (0..tab).map(|_| "\t").collect::<String>())
 			}
 
-			fn from_io_string(io_input: &mut String) -> Self {
+			fn from_io_string(io_input: &mut String) -> crate::Result<Self> {
 				delete_tabulator(io_input);
 				let mut objects: Vec<&str> = io_input.split_terminator("\n+\n").collect();
 
@@ -23,7 +25,7 @@ macro_rules! create_iterable_impl {
 					}
 				}
 
-				objects.iter().map(|o| from_io!(o.trim().to_string(), T)).collect()
+				objects.iter().map(|o| Ok(from_io!(o.trim().to_string(), T)?)).collect::<crate::Result<Self>>()
 			}
 		}
 	};
@@ -36,14 +38,15 @@ create_iterable_impl!(LinkedList<T>);
 create_iterable_impl!(VecDeque<T>);
 create_iterable_impl!(Vec<T>);
 
+
+
 // arrays
 impl <T: IoDeSer, const N: usize> IoDeSer for [T; N]{
-	//type Type = [T; N];
     fn to_io_string(&self, tab: u8) -> String {
 		format!("|\n{}\n{}|",iterable_ser(&mut self.into_iter(), tab), (0..tab).map(|_| "\t").collect::<String>())
     }
 
-    fn from_io_string(io_input: &mut String) -> Self {
+    fn from_io_string(io_input: &mut String) -> crate::Result<Self>{
 		delete_tabulator(io_input);
 		let mut objects: Vec<&str> = io_input.split_terminator("\n+\n").collect();
 
@@ -55,7 +58,11 @@ impl <T: IoDeSer, const N: usize> IoDeSer for [T; N]{
 			}
 		}
 
-		array_init::array_init(|index| from_io!(objects[index].trim().to_string(), T))
+		if &N != &objects.len(){
+			return Err(crate::errors::Error::ArrayLengthError(ArrayLengthError{ expected_size: N, received_size: objects.len() }));
+		}
+
+		array_init::try_array_init(|index| Ok(from_io!(objects[index].trim().to_string(), T)?))
     }
 }
 

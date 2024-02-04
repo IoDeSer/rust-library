@@ -64,7 +64,7 @@ pub fn opis_derive_macro(input: TokenStream) -> TokenStream {
 
 		// field initialization inside struct definition with: its_name: deserialized_io_string
 		tokens_from_io.extend(quote! {
-			#field_name: from_io!(variable_and_io_str_value[#index_of as usize][1], #field_type) ,
+			#field_name: from_io!(variable_and_io_str_value[#index_of as usize][1], #field_type)? ,
 		});
 
 
@@ -108,13 +108,12 @@ fn implement_iodeser_trait(struct_name: &Ident, to_io_string_tokens_implementati
 						   impl_generics: &ImplGenerics, ty_generics:&TypeGenerics, where_clause: &Option<&WhereClause>)->proc_macro2::TokenStream{
 	quote! {
         impl #impl_generics IoDeSer for #struct_name #ty_generics #where_clause {
-			//type Type = #struct_name #ty_generics;
+
 
 			#to_io_string_tokens_implementation
 
 
-
-            fn from_io_string(io_input:&mut String)->Self{
+            fn from_io_string(io_input:&mut String)->iodeser::Result<Self>{
 
 				// DELETE TABULATOR
 				let mut ret = String::new();
@@ -209,7 +208,7 @@ fn implement_iodeser_trait(struct_name: &Ident, to_io_string_tokens_implementati
 
 
 
-                #struct_name { #tokens_from_io }
+                Ok(#struct_name { #tokens_from_io })
             }
         }
     }
