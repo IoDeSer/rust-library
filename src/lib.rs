@@ -1,6 +1,7 @@
 mod primitives;
 mod arrays;
 mod map;
+mod tuples;
 pub mod errors;
 
 pub extern crate io_deser;
@@ -108,14 +109,13 @@ macro_rules! from_io{
 /// ```
 macro_rules! to_io{
     ($obj: expr)=>{
-        $obj.to_io_string(0);
-        //IoSerialization::begin($obj).ser()
+        {
+        $obj.to_io_string(0)
+            }
     };
 }
 
 
 
-// TODO: tuples, slices, tuple structs (struct X(T, T2, T3...))
-// TODO DONE: vectors, primitives, structs, strings, arrays
-
+// TODO: slices, tuple structs (struct X(T, T2, T3...))
 // potential solution for tuples https://docs.rs/impl-trait-for-tuples/latest/impl_trait_for_tuples/

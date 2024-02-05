@@ -41,6 +41,16 @@ fn primitive(){
 }
 
 #[test]
+fn tuple(){
+    let t = (1,true);
+    let io = to_io!(&t);
+
+    println!("{}", &io);
+    let tt = from_io!(io, (i32,u8));
+    println!("{:?}", tt);
+}
+
+#[test]
 fn checks(){
     let io = to_io!(&"test".to_string());
 

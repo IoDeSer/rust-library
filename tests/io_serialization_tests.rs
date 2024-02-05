@@ -75,6 +75,15 @@ compare_to!(&[1,5,-231],
 \t|-231|
 |", array);
 
+compare_to!(&(1, true, "testing?".to_string()),
+"|
+\t|1|
+\t+
+\t|true|
+\t+
+\t|testing?|
+|", tuple_primitives);
+
 compare_to!(&VecDeque::from([1,5,-231]),
 "|
 \t|1|
