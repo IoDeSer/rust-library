@@ -11,7 +11,12 @@ macro_rules! impl_iodeser_primitive {
             }
 
             fn from_io_string(io_input: &mut String) -> Result<Self> {
-                if io_input.len() < 2 {return Err(crate::errors::Error::IoFormatError(IoFormatError{ io_input: io_input.to_owned(), kind: "Input was too short. Perhaps it lacks vertical bar characters '|'?".to_string() }));}
+                if io_input.chars().nth(0).unwrap() != '|' ||  io_input.chars().nth(io_input.len() - 1).unwrap() != '|'{
+                    return Err(
+                        crate::errors::IoFormatError{ io_input: io_input.to_owned(),kind: "String lacks vertical bars at the beginning or end".to_string() }.into()
+                    );
+                }
+                if io_input.len() < 3 {return Err(crate::errors::Error::IoFormatError(IoFormatError{ io_input: io_input.to_owned(), kind: "Empty input".to_string() }));}
 
 
                 let chars: Vec<char> = io_input.chars().collect();

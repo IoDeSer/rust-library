@@ -74,7 +74,7 @@ pub fn opis_derive_macro(input: TokenStream) -> TokenStream {
 						if #index_of > 0 { "\n" } else { "" },
 						(0..tab+1).map(|_| "\t").collect::<String>(),
 						#field_name_setter,
-						IoSerialization::next(&self.#field_name, tab + 1).ser()
+						self.#field_name.to_io_string(tab + 1)
 					);
 			}
 		);

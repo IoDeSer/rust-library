@@ -17,7 +17,7 @@ macro_rules! create_iterable_impl {
 			fn from_io_string(io_input: &mut String) -> crate::Result<Self> {
         		if io_input.lines().count()<3 {return Err(crate::errors::Error::IoFormatError(IoFormatError{ io_input: io_input.to_owned(), kind: "Input string needs at least 3 lines. Perhaps it is being serialized from wrong type?".to_string() }));}
 
-				delete_tabulator(io_input);
+				let _ = delete_tabulator(io_input)?;
 				let mut objects: Vec<&str> = io_input.split_terminator("\n+\n").collect();
 
 				if objects.is_empty(){
@@ -52,7 +52,7 @@ impl <T: IoDeSer, const N: usize> IoDeSer for [T; N]{
     fn from_io_string(io_input: &mut String) -> crate::Result<Self>{
 		if io_input.lines().count()<3 {return Err(crate::errors::Error::IoFormatError(IoFormatError{ io_input: io_input.to_owned(), kind: "Input string needs at least 3 lines. Perhaps it is being serialized from wrong type?".to_string() }));}
 
-		delete_tabulator(io_input);
+		let _ = delete_tabulator(io_input)?;
 		let mut objects: Vec<&str> = io_input.split_terminator("\n+\n").collect();
 
 		if objects.is_empty(){

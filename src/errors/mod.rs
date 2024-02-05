@@ -84,6 +84,12 @@ pub struct IoFormatError{
     pub kind: String
 }
 
+impl From<IoFormatError> for Error{
+    fn from(value: IoFormatError) -> Self {
+        Error::IoFormatError(value)
+    }
+}
+
 impl Display for IoFormatError{
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "Error was found in .io formatted string: {}Message: {}",self.io_input, self.kind)
@@ -91,10 +97,15 @@ impl Display for IoFormatError{
 }
 
 #[derive(Debug)]
+/// Represents all errors that might occur during deserialization.
 pub enum Error{
+    /// See [`ParseError`]
     ParseError(ParseError),
+    /// See [`IoFormatError`]
     IoFormatError(IoFormatError),
+    /// See [`ArrayLengthError`]
     ArrayLengthError(ArrayLengthError),
+    /// See [`FieldNotFoundError`]
     FieldNotFoundError(FieldNotFoundError),
 }
 

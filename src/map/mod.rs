@@ -46,7 +46,7 @@ impl <T:IoDeSer + Ord, K:IoDeSer> IoDeSer for BTreeMap<T, K>{
     }
 
     fn from_io_string(io_input: &mut String) -> crate::Result<Self> {
-        delete_tabulator(io_input);
+        let _ = delete_tabulator(io_input)?;
         let mut objects = io_input.split_terminator("\n+\n").collect::<Vec<&str>>();
         if objects.is_empty(){
             if io_input.is_empty(){
@@ -70,7 +70,7 @@ impl<T: IoDeSer + Eq+ PartialEq+Hash,K: IoDeSer> IoDeSer for HashMap<T, K>{
     }
 
     fn from_io_string(io_input: &mut String) ->  crate::Result<Self> {
-        delete_tabulator(io_input);
+        let _  = delete_tabulator(io_input)?;
         let mut objects = io_input.split_terminator("\n+\n").collect::<Vec<&str>>();
         if objects.is_empty(){
             if io_input.is_empty(){
@@ -88,7 +88,7 @@ impl<T: IoDeSer + Eq+ PartialEq+Hash,K: IoDeSer> IoDeSer for HashMap<T, K>{
 }
 
 fn handle_hashmap_from_io_iteration<T: IoDeSer, K: IoDeSer>(io_string: &mut String)->crate::Result<(T,K)>{
-    delete_tabulator(io_string);
+    let _ = delete_tabulator(io_string)?;
     let mut objects = io_string.split_terminator("\n+\n").collect::<Vec<&str>>();
 
     if objects.is_empty(){

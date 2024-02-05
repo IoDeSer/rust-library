@@ -28,7 +28,7 @@ fn array(){
 fn vec(){
     let io = to_io!(&5);
 
-    let x1 = from_io!(io, Vec<i32>);
+    let x1 = from_io!(io, bool);
     println!("vec:\t{:?}", &x1);
 }
 
@@ -38,4 +38,14 @@ fn primitive(){
 
     let x1 = from_io!(io, i32);
     println!("prim:\t{:?}", &x1);
+}
+
+#[test]
+fn checks(){
+    let io = to_io!(&"test".to_string());
+
+    match from_io!(io, i32){
+        Ok(v) => println!("{v}"),
+        Err(e) => println!("{e}")
+    }
 }

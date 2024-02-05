@@ -3,30 +3,12 @@ mod arrays;
 mod map;
 pub mod errors;
 
-
-pub type Result<T> = std::result::Result<T, errors::Error>;
-
 pub extern crate io_deser;
 pub use io_deser::*;
 
-pub struct IoSerialization<'a, T>{
-    pub obj: &'a T,
-    pub tab: u8,
-}
 
-impl<'a, T: IoDeSer> IoSerialization<'a, T> {
-    pub fn begin(obj: &'a T)->IoSerialization<'a, T>{
-        IoSerialization{ obj, tab: 0 }
-    }
-
-    pub fn ser(self)->String{
-        self.obj.to_io_string(self.tab)
-    }
-
-    pub fn next(obj: &'a T, tab: u8)->IoSerialization<'a, T>{
-        IoSerialization{ obj, tab }
-    }
-}
+/// Alias for a `Result` with the error type [`errors::Error`]
+pub type Result<T> = std::result::Result<T, errors::Error>;
 
 /// Trait for serializing and deserializing objects into .io formatted String.
 pub trait IoDeSer{
@@ -58,7 +40,13 @@ pub trait IoDeSer{
 ///////////////////
 ///////////////////
 
-pub(crate) fn delete_tabulator(io_string: &mut String){
+pub(crate) fn delete_tabulator(io_string: &mut String)->Result<()>{
+    if io_string.chars().nth(0).unwrap() != '|' ||  io_string.chars().nth(io_string.len() - 1).unwrap() != '|'{
+        return Err(
+            errors::IoFormatError{ io_input: io_string.to_owned(),kind: "String lacks vertical bars at the beginning or end".to_string() }.into()
+        );
+    }
+
     let mut ret = String::new();
     let lines: Vec<&str> = io_string.lines().collect();
 
@@ -69,6 +57,7 @@ pub(crate) fn delete_tabulator(io_string: &mut String){
     }
 
     *io_string = ret.trim().to_string();
+    Ok(())
 }
 
 #[macro_export]
@@ -119,7 +108,8 @@ macro_rules! from_io{
 /// ```
 macro_rules! to_io{
     ($obj: expr)=>{
-        IoSerialization::begin($obj).ser()
+        $obj.to_io_string(0);
+        //IoSerialization::begin($obj).ser()
     };
 }
 
