@@ -42,7 +42,9 @@ pub trait IoDeSer{
 ///////////////////
 
 pub(crate) fn delete_tabulator(io_string: &mut String)->Result<()>{
-    if io_string.chars().nth(0).unwrap() != '|' ||  io_string.chars().nth(io_string.len() - 1).unwrap() != '|'{
+    let test_case = io_string.chars().collect::<Vec<char>>();
+
+    if test_case[0] != '|' ||  test_case[test_case.len() - 1] != '|'{
         return Err(
             errors::IoFormatError{ io_input: io_string.to_owned(),kind: "String lacks vertical bars at the beginning or end".to_string() }.into()
         );
