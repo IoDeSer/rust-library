@@ -36,10 +36,10 @@ from_implementation!(ParseBoolError);
 impl Display for ParseError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}",match self {
-            ParseError::ParseIntError(i) => format!("{}",i),
-            ParseError::ParseCharError(c) => format!("{}",c),
-            ParseError::ParseFloatError(f_e) => format!("{}",f_e),
-            ParseError::ParseBoolError(b) => format!("{}",b),
+            ParseError::ParseIntError(i) => i.to_string(),
+            ParseError::ParseCharError(c) => c.to_string(),
+            ParseError::ParseFloatError(f_e) => f_e.to_string(),
+            ParseError::ParseBoolError(b) => b.to_string(),
         })
     }
 }
@@ -63,10 +63,39 @@ impl Display for ArrayLengthError {
 }
 
 #[derive(Debug)]
+pub struct FieldNotFoundError{
+    pub field_name: String,
+    struct_name: String,
+}
+
+impl Display for FieldNotFoundError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Field '{}' was not found in struct '{}'.", self.field_name, self.struct_name)
+    }
+}
+
+impl FieldNotFoundError{
+    pub fn new(field:String, struct_name:String)->FieldNotFoundError{FieldNotFoundError{ field_name: field, struct_name }}
+}
+
+#[derive(Debug)]
+pub struct IoFormatError{
+    pub io_input:String,
+    pub kind: String
+}
+
+impl Display for IoFormatError{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Error was found in .io formatted string: {}Message: {}",self.io_input, self.kind)
+    }
+}
+
+#[derive(Debug)]
 pub enum Error{
     ParseError(ParseError),
-    IoFormatError,
-    ArrayLengthError(ArrayLengthError)
+    IoFormatError(IoFormatError),
+    ArrayLengthError(ArrayLengthError),
+    FieldNotFoundError(FieldNotFoundError),
 }
 
 
@@ -74,9 +103,10 @@ pub enum Error{
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", match self {
-            Error::ParseError(parse) => format!("{}", parse),
-            Error::IoFormatError => "IoFormatError in passed io string.".to_string(),
-            Error::ArrayLengthError(array_error) => format!("{}", array_error),
+            Error::ParseError(parse) => parse.to_string(),
+            Error::IoFormatError(io_error) => io_error.to_string(),
+            Error::ArrayLengthError(array_error) => array_error.to_string(),
+            Error::FieldNotFoundError(field_error)=> field_error.to_string(),
         })
     }
 }

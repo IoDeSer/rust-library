@@ -4,6 +4,7 @@ use std::collections::{HashSet, LinkedList, VecDeque, BinaryHeap, BTreeSet};
 use std::hash::Hash;
 use crate::{delete_tabulator, from_io, IoDeSer};
 use crate::errors::ArrayLengthError;
+use crate::errors::IoFormatError;
 
 macro_rules! create_iterable_impl {
     ($ty:ty $(, $wh : ident)*) => {
@@ -14,6 +15,8 @@ macro_rules! create_iterable_impl {
 			}
 
 			fn from_io_string(io_input: &mut String) -> crate::Result<Self> {
+        		if io_input.lines().count()<3 {return Err(crate::errors::Error::IoFormatError(IoFormatError{ io_input: io_input.to_owned(), kind: "Input string needs at least 3 lines. Perhaps it is being serialized from wrong type?".to_string() }));}
+
 				delete_tabulator(io_input);
 				let mut objects: Vec<&str> = io_input.split_terminator("\n+\n").collect();
 
@@ -47,6 +50,8 @@ impl <T: IoDeSer, const N: usize> IoDeSer for [T; N]{
     }
 
     fn from_io_string(io_input: &mut String) -> crate::Result<Self>{
+		if io_input.lines().count()<3 {return Err(crate::errors::Error::IoFormatError(IoFormatError{ io_input: io_input.to_owned(), kind: "Input string needs at least 3 lines. Perhaps it is being serialized from wrong type?".to_string() }));}
+
 		delete_tabulator(io_input);
 		let mut objects: Vec<&str> = io_input.split_terminator("\n+\n").collect();
 

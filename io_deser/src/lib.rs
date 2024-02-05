@@ -168,7 +168,7 @@ fn implement_iodeser_trait(struct_name: &Ident, to_io_string_tokens_implementati
 
 
 					if found_property==""{
-						panic!("Field '{}' was not found in struct '{}'",variable_name, stringify!(#struct_name));
+						return Err(iodeser::errors::Error::FieldNotFoundError(iodeser::errors::FieldNotFoundError::new(variable_name, stringify!(#struct_name).to_string())));
 					}
 
 

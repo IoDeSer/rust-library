@@ -1,12 +1,11 @@
 mod primitives;
 mod arrays;
 mod map;
-mod errors;
+pub mod errors;
 
 
 pub type Result<T> = std::result::Result<T, errors::Error>;
 
-//#[macro_use]
 pub extern crate io_deser;
 pub use io_deser::*;
 
@@ -41,10 +40,16 @@ pub trait IoDeSer{
 
     /// Deserializes .io formatted String into Self.
     ///
-    /// Returns deserialized object.
+    /// Returns result with deserialized object or [`errors::Error`].
     ///
     /// # Arguments
     ///  * `io_input` - .io formatted String.
+    ///
+    /// # Errors
+    /// * [`errors::Error::ParseError`] when deserializing primitive into wrong type
+    /// * [`errors::Error::IoFormatError`] when passed String `io_input` is in wrong format
+    /// * [`errors::Error::ArrayLengthError`] when deserializing array of size X into size Y
+    /// * [`errors::Error::FieldNotFoundError`] when field X was found in .io formatted String, but provided struct does not have one (might occur because of wrong naming or ordering, see [`io_order`] and [`io_name`] attributes)
     fn from_io_string(io_input:&mut String)->Result<Self> where Self: Sized; // Self::Type
 }
 
@@ -67,14 +72,19 @@ pub(crate) fn delete_tabulator(io_string: &mut String){
 }
 
 #[macro_export]
-/// Deserialize .io formatted String into an object.
+/// Deserializes .io formatted String into Self.
 ///
-/// Returns deserialized object.
+/// Returns result with deserialized object or [`errors::Error`].
 ///
 /// # Arguments
-///
 /// * `io_string` - .io formatted String
 /// * `type` - type of the deserialized object
+///
+/// # Errors
+/// * [`errors::Error::ParseError`] when deserializing primitive into wrong type
+/// * [`errors::Error::IoFormatError`] when passed String `io_input` is in wrong format
+/// * [`errors::Error::ArrayLengthError`] when deserializing array of size X into size Y
+/// * [`errors::Error::FieldNotFoundError`] when field X was found in .io formatted String, but provided struct does not have one (might occur because of wrong naming or ordering, see [`io_order`] and [`io_name`] attributes)
 ///
 /// # Eaxmples
 ///

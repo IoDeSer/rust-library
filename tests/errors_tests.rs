@@ -6,11 +6,9 @@ struct Test{
 }
 
 #[test]
-fn stru(){
+fn class(){
     let io = to_io!(&5);
     let x1 = from_io!(io, Test);
-
-
 
     println!("{:?}", &x1);
 }
@@ -19,17 +17,25 @@ fn stru(){
 fn array(){
     let f:[i32;0] = [];
     let io = to_io!(&f);
-    println!("{:?}", &io);
 
-    let x1 = from_io!(io, [i32; 2]);
-    println!("{:?}", &x1);
+    match from_io!(io, [i32; 2]){
+        Ok(o) => println!("{:?}", &o),
+        Err(e) => println!("{}", &e),
+    }
 }
 
 #[test]
 fn vec(){
-    let io = to_io!(&vec![0,43,-3,23,0,0]);
-    println!("{:?}", &io);
+    let io = to_io!(&5);
 
     let x1 = from_io!(io, Vec<i32>);
-    println!("{:?}", &x1);
+    println!("vec:\t{:?}", &x1);
+}
+
+#[test]
+fn primitive(){
+    let io = to_io!(&"test".to_string());
+
+    let x1 = from_io!(io, i32);
+    println!("prim:\t{:?}", &x1);
 }
