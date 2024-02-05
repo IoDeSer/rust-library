@@ -75,7 +75,7 @@ pub(crate) fn delete_tabulator(io_string: &mut String)->Result<()>{
 /// * [`errors::Error::ArrayLengthError`] when deserializing array of size X into size Y
 /// * [`errors::Error::FieldNotFoundError`] when field X was found in .io formatted String, but provided struct does not have one (might occur because of wrong naming or ordering, see [`io_order`] and [`io_name`] attributes)
 ///
-/// # Eaxmples
+/// # Examples
 ///
 /// ```
 /// use iodeser::*;
@@ -98,7 +98,7 @@ macro_rules! from_io{
 ///
 /// * `obj` - A reference to an object that implements IoDeSer trait.
 ///
-/// # Eaxmples
+/// # Examples
 ///
 /// ```
 /// use iodeser::*;
