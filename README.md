@@ -72,7 +72,7 @@ fn main() {
     /* saving to file for example */
     println!("{}", &io_serialization);
 
-    let person_deserialization: Person<u8> = from_io!(io_serialization, Person<u8>); // deserialization
+    let person_deserialization: Person<u8> = from_io!(io_serialization, Person<u8>).unwrap(); // deserialization
     println!("{:?}", &person_deserialization);
 }
 /*
