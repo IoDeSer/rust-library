@@ -11,7 +11,7 @@ The current status of both serialization and deserialization:
 - [X] Structs (with named fields)
 - [X] Generics
 - [X] Combinations of all above
-- [ ] Tuples
+- [X] Tuples
 - [ ] Tuple structs
 - [ ] &str type
 - [ ] Slices
