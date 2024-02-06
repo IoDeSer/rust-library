@@ -131,3 +131,13 @@ impl From<ParseError> for Error{
 }
 
 
+impl Error{
+    pub fn io_format(io_input: String, kind: String)->Error{
+        Error::IoFormatError(IoFormatError{ io_input, kind })
+    }
+
+    pub fn field_not_found(field_name:String, struct_name:String)->Error{
+        Error::FieldNotFoundError(FieldNotFoundError{ field_name, struct_name })
+    }
+}
+

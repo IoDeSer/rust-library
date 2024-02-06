@@ -1,6 +1,6 @@
 [package]
 name = "io_deser"
-version = "0.3.0"
+version = "0.3.2"
 authors = ["Io-Maciek"]
 description = "Procedural macro crate for generating implementation of IoDeSer trait for structs"
 keywords = ["template", "proc_macro", "procmacro"]

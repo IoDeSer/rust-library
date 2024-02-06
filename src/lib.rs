@@ -1,10 +1,97 @@
+//! # IoDeSer
+//! IoDeSer is a open-source project that allows to **de**serialize and **ser**ialize objects into **.io** formatted String.
+//!
+//! IoDeSer defines traits, methods, macros and implementations for basic Rust types. See this crate's [source code] for additional information.
+//!
+//!
+//! Currently supports the below types:
+//! - Vec<T>
+//! - HashMap<K, V>
+//! - Array [T; N]
+//! - Tuples (T1, T2...)
+//! - Primitive types (un/signed integer, char, float, boolean)
+//! - String
+//! - HashSet<T>
+//! - BinaryHeap<T>
+//! - BTreeSet<T>
+//! - LinkedList<T>
+//! - VecDeque<T>
+//! - HashMap<T, K>
+//! - BTreeMap<T, K>
+//!
+//! ## Status
+//! This crate is in alpha status and **should not** be used in production environment.
+//!
+//! ## Design
+//! The main foundation of this project is cross-language compatibility. See the [project account] for more information about other language libraries status, goals and status.
+//!
+//! ## Examples
+//! ```rust
+//! use iodeser::*; // required import
+//!
+//! #[derive(IoDeSer, Debug)] // required macro derive IoDeSer, Debug is not required
+//! struct Person<T: IoDeSer> {
+//!     #[io_name("Name")]      // optional renaming
+//!     pub name: String,
+//!     #[io_name("LastName")]  // optional renaming
+//!     pub last_name: String,
+//!     #[io_name("Age")]       // optional renaming
+//!     #[io_order(LAST)]       // optional ordering using FIRST or LAST keyword
+//!     pub age: u8,
+//!     #[io_name("Address")]   // optional renaming
+//!     #[io_order(FIRST)]      // optional ordering using FIRST or LAST keyword
+//!     pub address: Vec<Address<T>>,
+//! }
+//!
+//! #[derive(IoDeSer, Debug)] // required macro derive, Debug is not required
+//! struct Address<T: IoDeSer> {
+//!     #[io_order(3)]          // optional ordering using integer
+//!     pub city: String,
+//!     #[io_order(1)]          // optional ordering using integer
+//!     pub number: T,
+//!     #[io_order(2)]          // optional ordering using integer
+//!     pub street: String,
+//! }
+//!
+//! fn main() {
+//!     let person = Person::<u8> {
+//!         name: "John".to_string(),
+//!         last_name: "Kowalski".to_string(),
+//!         age: 21,
+//!         address: vec![
+//!             Address::<u8> {
+//!                 city: "Warsaw".to_string(),
+//!                 number: 65,
+//!                 street: "Tęczowa".to_string(),
+//!             },
+//!             Address::<u8> {
+//!                 city: "Hamburg".to_string(),
+//!                 number: 220,
+//!                 street: "Strasse".to_string(),
+//!             }
+//!         ],
+//!     };
+//!
+//!     let io_serialization: String = to_io!(&person); // serialization
+//!     println!("{}", &io_serialization);
+//!
+//!    let person_deserialization: Person<u8> = from_io!(io_serialization, Person<u8>).unwrap(); // deserialization
+//!     println!("{:?}", &person_deserialization);
+//! }
+//! ```
+//!
+//! [source code]: https://github.com/IoDeSer/rust-library
+//! [project account]: https://github.com/IoDeSer
+
+//////////////////////////////////////
+
 mod primitives;
 mod arrays;
 mod map;
 mod tuples;
-pub mod errors;
+mod errors;
 
-pub extern crate io_deser;
+pub use errors::Error;
 pub use io_deser::*;
 
 
@@ -12,6 +99,17 @@ pub use io_deser::*;
 pub type Result<T> = std::result::Result<T, errors::Error>;
 
 /// Trait for serializing and deserializing objects into .io formatted String.
+///
+/// **Should not** be implemented by end user. Instead, use macro [IoDeSer] via the *derive* attribute.
+///
+/// ## Examples
+/// ```rust
+/// use iodeser::*;
+/// #[derive(IoDeSer)]
+/// struct HtmlService{
+/// 	pub api_key_string: String,
+///		pub address: String,
+/// }
 pub trait IoDeSer{
     //type Output;
 
@@ -41,22 +139,18 @@ pub trait IoDeSer{
 ///////////////////
 ///////////////////
 
+#[inline]
 pub(crate) fn delete_tabulator(io_string: &mut String)->Result<()>{
-    let test_case = io_string.chars().collect::<Vec<char>>();
-
-    if test_case[0] != '|' ||  test_case[test_case.len() - 1] != '|'{
-        return Err(
-            errors::IoFormatError{ io_input: io_string.to_owned(),kind: "String lacks vertical bars at the beginning or end".to_string() }.into()
-        );
+    if !io_string.starts_with('|') || !io_string.ends_with('|') {
+        return Err(errors::IoFormatError {
+            io_input: io_string.clone(),
+            kind: "String lacks vertical bars at the beginning or end".to_string(),
+        }.into());
     }
 
     let mut ret = String::new();
-    let lines: Vec<&str> = io_string.lines().collect();
-
-    for line in lines {
-        if line.len() > 1 {
-            ret += &format!("{}\n", &line[1..]);
-        }
+    for line in io_string.lines().filter(|line| line.len() > 1) {
+        ret += &format!("{}\n", &line[1..]);
     }
 
     *io_string = ret.trim().to_string();

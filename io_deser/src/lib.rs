@@ -10,29 +10,44 @@ use crate::fields_renaming::parse_fields_naming;
 mod fields_ordering;
 mod fields_renaming;
 
-
-fn create_fields_from_data<'a>(input: &'a DeriveInput)->Vec::<FieldOrder<'a>>{
-	let mut fields_order = Vec::<FieldOrder>::new();
-
-	// iterate through all fields
-	if let syn::Data::Struct(ref data) = input.data {
+#[inline]
+fn create_fields_from_data(input: &DeriveInput) -> Vec<FieldOrder> {
+	let fields_order = if let syn::Data::Struct(ref data) = input.data {
 		if let syn::Fields::Named(ref fields) = data.fields {
-			for field in &fields.named {
-				if matches!(field.vis, Visibility::Public(_)) {
-
-					fields_order.push(FieldOrder::new(field, &input.ident));
-
-				}
-			}
+			let mut fields_order = fields.named
+				.iter()
+				.filter_map(|field| {
+					if let Visibility::Public(_) = field.vis {
+						Some(FieldOrder::new(field, &input.ident))
+					} else {
+						None
+					}
+				})
+				.collect::<Vec<_>>();
+			fields_order.sort();
+			fields_order
+		} else {
+			Vec::new()
 		}
-	}
-
-	fields_order.sort();
+	} else {
+		Vec::new()
+	};
 	fields_order
 }
 
 
 #[proc_macro_derive(IoDeSer, attributes(io_name, io_order))]
+/// Procedural macro which implements IoDeSer trait for Rust structs using *derive* attribute.
+///
+/// ## Examples
+/// ```rust
+/// use iodeser::*;
+/// #[derive(IoDeSer)]
+/// struct HtmlService{
+/// 	pub api_key_string: String,
+///		pub address: String,
+/// }
+/// ```
 pub fn opis_derive_macro(input: TokenStream) -> TokenStream {
 	let input = parse_macro_input!(input as DeriveInput);
 	let struct_name = &input.ident;
@@ -85,13 +100,6 @@ pub fn opis_derive_macro(input: TokenStream) -> TokenStream {
 	vector_field_maker = quote!{vec![#vector_field_maker]};
 
 
-	to_io_string_tokens_implementation = quote!{
-			fn to_io_string(&self, tab: u8)->String{
-				let mut string_output = String::from("|\n");
-                #to_io_string_tokens_implementation
-				format!("{}\n{}|",string_output, (0..tab).map(|_| "\t").collect::<String>())
-            }
-	};
 
 
 	implement_iodeser_trait(struct_name,
@@ -110,21 +118,27 @@ fn implement_iodeser_trait(struct_name: &Ident, to_io_string_tokens_implementati
         impl #impl_generics IoDeSer for #struct_name #ty_generics #where_clause {
 
 
-			#to_io_string_tokens_implementation
+			fn to_io_string(&self, tab: u8)->String{
+				let mut string_output = String::from("|\n");
+                #to_io_string_tokens_implementation
+				format!("{}\n{}|",string_output, (0..tab).map(|_| "\t").collect::<String>())
+            }
 
 
             fn from_io_string(io_input:&mut String)->iodeser::Result<Self>{
 
 				// DELETE TABULATOR
-				let mut ret = String::new();
-				let lines: Vec<&str> = io_input.lines().collect();
 
-				for line in lines {
-					if line.len() > 1 {
-						ret += &format!("{}\n", &line[1..]);
-					}
+				if !io_input.starts_with('|') || !io_input.ends_with('|') {
+					return Err(iodeser::Error::io_format(io_input.clone(),"String lacks vertical bars at the beginning or end".to_string())
+						.into());
 				}
 
+				let mut ret = String::new();
+				for line in io_input.lines().filter(|line| line.len() > 1) {
+					ret.push_str(&line[1..]);
+					ret.push('\n');
+				}
 				*io_input = ret.trim().to_string();
 				// DELETE TABULATOR
 
@@ -168,7 +182,8 @@ fn implement_iodeser_trait(struct_name: &Ident, to_io_string_tokens_implementati
 
 
 					if found_property==""{
-						return Err(iodeser::errors::Error::FieldNotFoundError(iodeser::errors::FieldNotFoundError::new(variable_name, stringify!(#struct_name).to_string())));
+						return Err(iodeser::Error::field_not_found(variable_name, stringify!(#struct_name).to_string())
+							.into());
 					}
 
 

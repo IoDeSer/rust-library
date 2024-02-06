@@ -41,6 +41,7 @@ macro_rules! map_to_io {
 }
 impl <T:IoDeSer + Ord, K:IoDeSer> IoDeSer for BTreeMap<T, K>{
 
+    #[inline]
     fn to_io_string(&self, tab: u8) -> String {
         map_to_io!(self, tab)
     }
@@ -65,6 +66,7 @@ impl <T:IoDeSer + Ord, K:IoDeSer> IoDeSer for BTreeMap<T, K>{
 
 impl<T: IoDeSer + Eq+ PartialEq+Hash,K: IoDeSer> IoDeSer for HashMap<T, K>{
 
+    #[inline]
     fn to_io_string(&self, tab: u8) -> String {
         map_to_io!(self, tab)
     }
@@ -87,6 +89,7 @@ impl<T: IoDeSer + Eq+ PartialEq+Hash,K: IoDeSer> IoDeSer for HashMap<T, K>{
     }
 }
 
+#[inline]
 fn handle_hashmap_from_io_iteration<T: IoDeSer, K: IoDeSer>(io_string: &mut String)->crate::Result<(T,K)>{
     let _ = delete_tabulator(io_string)?;
     let mut objects = io_string.split_terminator("\n+\n").collect::<Vec<&str>>();
@@ -102,6 +105,7 @@ fn handle_hashmap_from_io_iteration<T: IoDeSer, K: IoDeSer>(io_string: &mut Stri
     Ok((from_io!(objects[0].to_string(), T)?, from_io!(objects[1].to_string(), K)?))
 }
 
+#[inline]
 fn handle_hashmap_iteration<T: IoDeSer, V:IoDeSer>(key:&T, value: &V, tab:u8)->String{
     let tabs = (0..tab + 1).map(|_| "\t").collect::<String>();
 

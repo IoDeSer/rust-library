@@ -6,6 +6,7 @@ macro_rules! impl_iodeser_primitive {
     ($type:ty) => {
         impl IoDeSer for $type {
 
+            #[inline]
             fn to_io_string(&self, _tab: u8) -> String {
                 format!("|{}|", self)
             }
@@ -29,6 +30,7 @@ macro_rules! impl_iodeser_primitive {
 }
 
 impl IoDeSer for String {
+    #[inline]
     fn to_io_string(&self, _tab: u8) -> String  {
         format!("|{}|", self)
     }

@@ -3,19 +3,19 @@
 use std::collections::{HashSet, LinkedList, VecDeque, BinaryHeap, BTreeSet};
 use std::hash::Hash;
 use crate::{delete_tabulator, from_io, IoDeSer};
-use crate::errors::ArrayLengthError;
-use crate::errors::IoFormatError;
+use crate::errors::*;
 
 macro_rules! create_iterable_impl {
     ($ty:ty $(, $wh : ident)*) => {
 		impl <T: IoDeSer $(+ $wh)*> IoDeSer for $ty{
 
+			#[inline]
 			fn to_io_string(&self, tab: u8) -> String {
 				format!("|\n{}\n{}|",iterable_ser(&mut self.into_iter(), tab), (0..tab).map(|_| "\t").collect::<String>())
 			}
 
 			fn from_io_string(io_input: &mut String) -> crate::Result<Self> {
-        		if io_input.lines().count()<3 {return Err(crate::errors::Error::IoFormatError(IoFormatError{ io_input: io_input.to_owned(), kind: "Input string needs at least 3 lines. Perhaps it is being serialized from wrong type?".to_string() }));}
+        		if io_input.lines().count()<3 {return Err(Error::IoFormatError(IoFormatError{ io_input: io_input.to_owned(), kind: "Input string needs at least 3 lines. Perhaps it is being serialized from wrong type?".to_string() }));}
 
 				let _ = delete_tabulator(io_input)?;
 				let mut objects: Vec<&str> = io_input.split_terminator("\n+\n").collect();
@@ -50,7 +50,7 @@ impl <T: IoDeSer, const N: usize> IoDeSer for [T; N]{
     }
 
     fn from_io_string(io_input: &mut String) -> crate::Result<Self>{
-		if io_input.lines().count()<3 {return Err(crate::errors::Error::IoFormatError(IoFormatError{ io_input: io_input.to_owned(), kind: "Input string needs at least 3 lines. Perhaps it is being serialized from wrong type?".to_string() }));}
+		if io_input.lines().count()<3 {return Err(Error::IoFormatError(IoFormatError{ io_input: io_input.to_owned(), kind: "Input string needs at least 3 lines. Perhaps it is being serialized from wrong type?".to_string() }));}
 
 		let _ = delete_tabulator(io_input)?;
 		let mut objects: Vec<&str> = io_input.split_terminator("\n+\n").collect();
@@ -64,13 +64,14 @@ impl <T: IoDeSer, const N: usize> IoDeSer for [T; N]{
 		}
 
 		if &N != &objects.len(){
-			return Err(crate::errors::Error::ArrayLengthError(ArrayLengthError{ expected_size: N, received_size: objects.len() }));
+			return Err(crate::errors::Error::ArrayLengthError(crate::errors::ArrayLengthError{ expected_size: N, received_size: objects.len() }));
 		}
 
 		array_init::try_array_init(|index| Ok(from_io!(objects[index].trim().to_string(), T)?))
     }
 }
 
+#[inline]
 fn iterable_ser<'a, X: IoDeSer + 'a, T: Iterator<Item = &'a X>>(obj: T, tab: u8) -> String {
 	let mut array_str = String::new();
 
