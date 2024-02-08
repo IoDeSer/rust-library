@@ -6,13 +6,15 @@ use syn::{parse_macro_input, DeriveInput, Visibility, TypeGenerics, WhereClause,
 use quote::quote;
 use crate::fields_ordering::FieldOrder;
 use crate::fields_renaming::parse_fields_naming;
+use crate::struct_type::StructType;
 
 mod fields_ordering;
 mod fields_renaming;
+mod struct_type;
 
 #[inline]
-fn create_fields_from_data(input: &DeriveInput) -> Vec<FieldOrder> {
-	let fields_order = if let syn::Data::Struct(ref data) = input.data {
+fn create_fields_from_data(input: &DeriveInput) -> StructType {
+	if let syn::Data::Struct(ref data) = input.data {
 		if let syn::Fields::Named(ref fields) = data.fields {
 			let mut fields_order = fields.named
 				.iter()
@@ -25,14 +27,17 @@ fn create_fields_from_data(input: &DeriveInput) -> Vec<FieldOrder> {
 				})
 				.collect::<Vec<_>>();
 			fields_order.sort();
-			fields_order
-		} else {
-			Vec::new()
+			StructType::NamedFields(fields_order)
+		} else if let syn::Fields::Unnamed(ref unnamed) = data.fields{
+			println!("tihi");
+			StructType::Tuple(1)
+		}
+		else {
+			StructType::NotStruct
 		}
 	} else {
-		Vec::new()
-	};
-	fields_order
+		StructType::NotStruct
+	}
 }
 
 
@@ -52,13 +57,15 @@ pub fn opis_derive_macro(input: TokenStream) -> TokenStream {
 	let input = parse_macro_input!(input as DeriveInput);
 	let struct_name = &input.ident;
 	let (impl_generics, ty_generics, where_clause) = &input.generics.split_for_impl();
+	println!("AAAA {}" , &struct_name);
 
 	let fields_order = create_fields_from_data(&input);
-
+	// TODO struct type to handle tuple type
 
 	let mut to_io_string_tokens_implementation = quote!{};
 	let mut vector_field_maker = quote!{};
 	let mut tokens_from_io = quote!{};
+	let mut field_io_string = quote!{};
 
 
 	for (index_of,field_o) in fields_order.iter().enumerate() {
@@ -66,10 +73,15 @@ pub fn opis_derive_macro(input: TokenStream) -> TokenStream {
 		let field_type = &field.ty;
 		let field_name = field.ident.as_ref();
 		let field_name_str = field.ident.as_ref().unwrap().to_string();
-
+		println!("{}", field_name_str);
 
 		let (field_name_setter, option_field_file_name) = parse_fields_naming(&field,struct_name);
 
+
+
+		field_io_string.extend(quote!{
+
+		});
 
 		// vector with real field name and otional renaming    vec![(in_rust_real_name, optional_renaming), (...)]
 		vector_field_maker.extend(quote!{
@@ -99,8 +111,15 @@ pub fn opis_derive_macro(input: TokenStream) -> TokenStream {
 	// final token initialization of vector with field names / optional renamings
 	vector_field_maker = quote!{vec![#vector_field_maker]};
 
+	// create custom new function
 
+	let impl_new_from_io_function_token = quote!{
+		impl #struct_name{
+			pub fn new_from_io(#field_io_string){
 
+			}
+		}
+	};
 
 	implement_iodeser_trait(struct_name,
 							to_io_string_tokens_implementation,
@@ -115,6 +134,7 @@ fn implement_iodeser_trait(struct_name: &Ident, to_io_string_tokens_implementati
 						   , vector_field_maker:proc_macro2::TokenStream, tokens_from_io:proc_macro2::TokenStream,
 						   impl_generics: &ImplGenerics, ty_generics:&TypeGenerics, where_clause: &Option<&WhereClause>)->proc_macro2::TokenStream{
 	quote! {
+		#[automatically_derived]
         impl #impl_generics IoDeSer for #struct_name #ty_generics #where_clause {
 
 

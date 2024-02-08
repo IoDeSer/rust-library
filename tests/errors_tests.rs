@@ -5,6 +5,11 @@ struct Test{
     pub x:i32
 }
 
+#[derive(IoDeSer)]
+struct Create(pub String);
+
+
+
 #[test]
 fn class(){
     let io = to_io!(&5);
