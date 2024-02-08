@@ -7,6 +7,7 @@ use crate::errors::*;
 
 macro_rules! create_iterable_impl {
     ($ty:ty $(, $wh : ident)*) => {
+		#[automatically_derived]
 		impl <T: IoDeSer $(+ $wh)*> IoDeSer for $ty{
 
 			#[inline]

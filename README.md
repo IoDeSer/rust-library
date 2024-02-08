@@ -8,11 +8,13 @@ The current status of both serialization and deserialization:
 - [X] Arrays
 - [X] Vectors
 - [X] Hashmaps
-- [X] Structs (with named fields)
+- [X] Structs (Named{} and tuple())
 - [X] Generics
 - [X] Combinations of all above
 - [X] Tuples
-- [ ] Tuple structs
+- [ ] Option
+- [ ] Result
+- [ ] Enums
 - [ ] &str type
 - [ ] Slices
 

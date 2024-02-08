@@ -2,6 +2,7 @@ use crate::{IoDeSer, delete_tabulator, from_io};
 
 macro_rules! impl_tuple {
     ($t1:tt | $($idx:tt $t:tt),+ | $max:expr) => {
+        #[automatically_derived]
         impl <$t1:IoDeSer,$($t:IoDeSer,)+> IoDeSer for ($t1,$($t,)+){
             fn to_io_string(&self, tab: u8) -> String {
                 let mut output = "|\n".to_string();

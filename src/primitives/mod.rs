@@ -4,6 +4,7 @@ use crate::errors::IoFormatError;
 
 macro_rules! impl_iodeser_primitive {
     ($type:ty) => {
+        #[automatically_derived]
         impl IoDeSer for $type {
 
             #[inline]
