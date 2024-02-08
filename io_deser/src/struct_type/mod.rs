@@ -82,6 +82,10 @@ pub(crate) fn de_from_struct_type(is_tuple_struct:bool, _vector_field_maker:proc
                     }
                 }
 
+			if &#_vector_field_maker != &objects.len(){
+                    return Err(iodeser::Error::length_error(objects.len(),#_vector_field_maker).into());
+			}
+
             for o in objects{
                 variable_and_io_str_value.push(o.to_string());
             }

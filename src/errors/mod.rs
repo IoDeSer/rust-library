@@ -129,6 +129,11 @@ impl From<ParseError> for Error{
     }
 }
 
+impl From<ArrayLengthError> for Error{
+    fn from(value: ArrayLengthError) -> Self {
+        Error::ArrayLengthError(value)
+    }
+}
 
 impl Error{
     pub fn io_format(io_input: String, kind: String)->Error{
@@ -137,6 +142,10 @@ impl Error{
 
     pub fn field_not_found(field_name:String, struct_name:String)->Error{
         Error::FieldNotFoundError(FieldNotFoundError{ field_name, struct_name })
+    }
+
+    pub fn length_error(received_len:usize, expected_len: usize)->Error{
+        Error::ArrayLengthError(ArrayLengthError{ expected_size: expected_len, received_size: received_len })
     }
 }
 

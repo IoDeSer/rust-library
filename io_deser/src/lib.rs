@@ -78,9 +78,13 @@ pub fn opis_derive_macro(input: TokenStream) -> TokenStream {
 	let mut index_of = 0;
 
 
-	let is_tuple_struct = match fields_order{
+	let is_tuple_struct = match &fields_order{
 		StructType::NamedFields(_) => false,
-		StructType::Tuple(_) => true
+		StructType::Tuple(t) => {
+			let l = t.len();
+			_vector_field_maker = quote!{#l};
+			true
+		}
 	};
 	for field_type in fields_order{
 		match field_type{
@@ -125,6 +129,8 @@ pub fn opis_derive_macro(input: TokenStream) -> TokenStream {
 			// IF STRUCT TUPLE
 			IterType::Type(t) => {
 
+
+
 				let field_type = t;
 
 				_struct_return_definition.extend(quote! {
@@ -153,12 +159,13 @@ pub fn opis_derive_macro(input: TokenStream) -> TokenStream {
 	}
 
 	// final token initialization of vector with field names / optional renamings
-	_vector_field_maker = quote!{vec![#_vector_field_maker]};
 
 
 
 	_struct_return_definition = match is_tuple_struct{
 		false => {
+			_vector_field_maker = quote!{vec![#_vector_field_maker]};
+
 			quote! {
 				#struct_name {#_struct_return_definition}
 			}
@@ -200,6 +207,13 @@ fn implement_iodeser_trait(struct_name: &Ident, to_io_string_tokens_implementati
 
             fn from_io_string(io_input:&mut String)->iodeser::Result<Self>{
 				// DELETE TABULATOR
+
+				if !io_input.starts_with('|') || !io_input.ends_with('|') {
+					return Err(iodeser::Error::io_format (
+						io_input.clone(),
+						"String lacks vertical bars at the beginning or end".to_string(),
+					).into());
+				}
 
 				if !io_input.starts_with('|') || !io_input.ends_with('|') {
 					return Err(iodeser::Error::io_format(io_input.clone(),"String lacks vertical bars at the beginning or end".to_string())

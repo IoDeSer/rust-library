@@ -9,7 +9,20 @@ fn order_with_tuple_struct(){
         pub i32,
         pub i32
     );
-    println!("{}", to_io!(&Test(5,-320)));
+
+    #[derive(IoDeSer, Debug)]
+    struct Test2(
+        pub i32,
+    );
+
+    let io = to_io!(&Test(5,10));
+    let t = from_io!(io, Test2);
+    println!("{:?}", t);
+    assert!(format!("{:?}", t).starts_with("Err(ArrayLengthError"));
+
+    let t = from_io!("\t|5|\n\t+\n\t|10|".to_string(), Test2);
+    println!("{:?}", t);
+    assert!(format!("{:?}", t).starts_with("Err(Io"));
 }
 
 #[test]

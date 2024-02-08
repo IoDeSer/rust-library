@@ -3,7 +3,7 @@ use std::cmp::Ordering;
 use proc_macro2::Ident;
 use std::fmt::{Debug, Formatter};
 
-pub struct FieldOrder<'a>{
+pub(crate) struct FieldOrder<'a>{
     pub field:&'a Field,
     place:i16,
 }
