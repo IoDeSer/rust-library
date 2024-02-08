@@ -1,5 +1,17 @@
 use iodeser::*;
 
+
+#[test]
+fn order_with_tuple_struct(){
+    #[derive(IoDeSer, Debug)]
+    struct Test(
+        #[io_order(LAST)]
+        pub i32,
+        pub i32
+    );
+    println!("{}", to_io!(&Test(5,-320)));
+}
+
 #[test]
 fn primitives(){
     #[derive(IoDeSer, Debug)]
