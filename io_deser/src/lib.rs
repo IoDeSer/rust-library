@@ -3,7 +3,8 @@ extern crate proc_macro;
 use proc_macro2::{Ident, Literal};
 use proc_macro::TokenStream;
 use syn::{parse_macro_input, DeriveInput, Visibility, TypeGenerics, WhereClause, ImplGenerics, Type};
-use quote::{quote};
+use quote::{quote, ToTokens};
+use quote::__private::ext::RepToTokensExt;
 use crate::fields_ordering::FieldOrder;
 use crate::fields_renaming::parse_fields_naming;
 use crate::struct_type::{StructType, IterType, de_from_struct_type};
@@ -180,6 +181,14 @@ pub fn opis_derive_macro(input: TokenStream) -> TokenStream {
 
 	let _deserialization_implementation = de_from_struct_type(is_tuple_struct, _vector_field_maker, struct_name);
 
+	println!("gen: {:?}",impl_generics.into_token_stream().to_string());
+	println!("ty: {:?}",ty_generics.into_token_stream().to_string());
+	println!("wh: {:?}",where_clause.into_token_stream().to_string());
+	println!("");
+
+	let x = ty_generics.quote_into_iter();
+
+
 	implement_iodeser_trait(struct_name,
 							to_io_string_tokens_implementation,
 							_struct_return_definition,
@@ -195,8 +204,9 @@ fn implement_iodeser_trait(struct_name: &Ident, to_io_string_tokens_implementati
 						   _deserialization_implementation:proc_macro2::TokenStream)->proc_macro2::TokenStream{
 	quote! {
 		#[automatically_derived]
-        impl #impl_generics IoDeSer for #struct_name #ty_generics #where_clause {
+        impl #impl_generics IoDeSer<'_> for #struct_name #ty_generics #where_clause {
 
+			type Output = #struct_name #ty_generics;
 
 			fn to_io_string(&self, tab: u8)->String{
 				let mut string_output = String::from("|\n");
@@ -205,7 +215,7 @@ fn implement_iodeser_trait(struct_name: &Ident, to_io_string_tokens_implementati
             }
 
 
-            fn from_io_string(io_input:&mut String)->iodeser::Result<Self>{
+            fn from_io_string(io_input:&mut String)->iodeser::Result<Self::Output>{
 				// DELETE TABULATOR
 
 				if !io_input.starts_with('|') || !io_input.ends_with('|') {

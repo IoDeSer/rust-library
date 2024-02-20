@@ -112,8 +112,8 @@ pub type Result<T> = std::result::Result<T, errors::Error>;
 /// 	pub api_key_string: String,
 ///		pub address: String,
 /// }
-pub trait IoDeSer{
-    //type Output;
+pub trait IoDeSer<'a>{
+    type Output;
 
     /// Serializes *self* into .io file format.
     ///
@@ -133,7 +133,7 @@ pub trait IoDeSer{
     /// * [`errors::Error::IoFormatError`] when passed String `io_input` is in wrong format
     /// * [`errors::Error::ArrayLengthError`] when deserializing array of size X into size Y
     /// * [`errors::Error::FieldNotFoundError`] when field X was found in .io formatted String, but provided struct does not have one (might occur because of wrong naming or ordering, see [`io_order`] and [`io_name`] attributes)
-    fn from_io_string(io_input:&mut String)->Result<Self> where Self: Sized; // Self::Type
+    fn from_io_string(io_input:&mut String)->Result<Self::Output>;// where Self: Sized; // Self::Type
 }
 
 

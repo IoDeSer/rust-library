@@ -39,14 +39,17 @@ macro_rules! map_to_io {
         }
     };
 }
-impl <T:IoDeSer + Ord, K:IoDeSer> IoDeSer for BTreeMap<T, K>{
+impl <'a,T:IoDeSer<'a> + Ord, K:IoDeSer<'a>> IoDeSer<'a> for BTreeMap<T, K>
+where T::Output : Ord
+{
+    type Output = BTreeMap<T::Output, K::Output>;
 
     #[inline]
     fn to_io_string(&self, tab: u8) -> String {
         map_to_io!(self, tab)
     }
 
-    fn from_io_string(io_input: &mut String) -> crate::Result<Self> {
+    fn from_io_string(io_input: &mut String) -> crate::Result<Self::Output> {
         let _ = delete_tabulator(io_input)?;
         let mut objects = io_input.split_terminator("\n+\n").collect::<Vec<&str>>();
         if objects.is_empty(){
@@ -59,19 +62,22 @@ impl <T:IoDeSer + Ord, K:IoDeSer> IoDeSer for BTreeMap<T, K>{
 
         objects
             .iter_mut()
-            .map(|o| handle_hashmap_from_io_iteration(&mut o.to_string()))
-            .collect::<crate::Result<Self>>()
+            .map(|o| handle_hashmap_from_io_iteration::<T,K>(&mut o.to_string()))
+            .collect::<crate::Result<Self::Output>>()
     }
 }
 
-impl<T: IoDeSer + Eq+ PartialEq+Hash,K: IoDeSer> IoDeSer for HashMap<T, K>{
+impl<'a, T: IoDeSer<'a> + Eq+ PartialEq+Hash,K: IoDeSer<'a>> IoDeSer<'a> for HashMap<T, K>
+    where T::Output : Eq +Hash
+{
+    type Output = HashMap<T::Output, K::Output>;
 
     #[inline]
     fn to_io_string(&self, tab: u8) -> String {
         map_to_io!(self, tab)
     }
 
-    fn from_io_string(io_input: &mut String) ->  crate::Result<Self> {
+    fn from_io_string(io_input: &mut String) ->  crate::Result<Self::Output> {
         let _  = delete_tabulator(io_input)?;
         let mut objects = io_input.split_terminator("\n+\n").collect::<Vec<&str>>();
         if objects.is_empty(){
@@ -84,13 +90,13 @@ impl<T: IoDeSer + Eq+ PartialEq+Hash,K: IoDeSer> IoDeSer for HashMap<T, K>{
 
         objects
             .iter_mut()
-            .map(|o| handle_hashmap_from_io_iteration(&mut o.to_string()))
-            .collect::<crate::Result<Self> >()
+            .map(|o| handle_hashmap_from_io_iteration::<T,K>(&mut o.to_string()))
+            .collect::<crate::Result<Self::Output> >()
     }
 }
 
 #[inline]
-fn handle_hashmap_from_io_iteration<T: IoDeSer, K: IoDeSer>(io_string: &mut String)->crate::Result<(T,K)>{
+fn handle_hashmap_from_io_iteration<'a,T: IoDeSer<'a>, K: IoDeSer<'a>>(io_string: &mut String)->crate::Result<(T::Output,K::Output)>{
     let _ = delete_tabulator(io_string)?;
     let mut objects = io_string.split_terminator("\n+\n").collect::<Vec<&str>>();
 
@@ -106,7 +112,7 @@ fn handle_hashmap_from_io_iteration<T: IoDeSer, K: IoDeSer>(io_string: &mut Stri
 }
 
 #[inline]
-fn handle_hashmap_iteration<T: IoDeSer, V:IoDeSer>(key:&T, value: &V, tab:u8)->String{
+fn handle_hashmap_iteration<'a,T: IoDeSer<'a>, V:IoDeSer<'a>>(key:&T, value: &V, tab:u8)->String{
     let tabs = (0..tab + 1).map(|_| "\t").collect::<String>();
 
     format!("|\n{}{}\n{}+\n{}{}\n{}|",

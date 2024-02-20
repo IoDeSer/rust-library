@@ -6,16 +6,23 @@ use crate::{delete_tabulator, from_io, IoDeSer};
 use crate::errors::*;
 
 macro_rules! create_iterable_impl {
-    ($ty:ty $(, $wh : ident)*) => {
+    ($ty:ident $(, $wh : ident)*) => {
 		#[automatically_derived]
-		impl <T: IoDeSer $(+ $wh)*> IoDeSer for $ty{
+		impl <'a, T> IoDeSer<'a> for $ty<T>
+		where T:IoDeSer<'a>,
+		$(
+		T::Output: $wh,
+		)*
+
+		{
+			type Output = $ty<T::Output>;
 
 			#[inline]
 			fn to_io_string(&self, tab: u8) -> String {
 				format!("|\n{}\n{}|",iterable_ser(&mut self.into_iter(), tab), (0..tab).map(|_| "\t").collect::<String>())
 			}
 
-			fn from_io_string(io_input: &mut String) -> crate::Result<Self> {
+			fn from_io_string(io_input: &mut String) -> crate::Result<Self::Output> {
         		if io_input.lines().count()<3 {return Err(Error::IoFormatError(IoFormatError{ io_input: io_input.to_owned(), kind: "Input string needs at least 3 lines. Perhaps it is being serialized from wrong type?".to_string() }));}
 
 				let _ = delete_tabulator(io_input)?;
@@ -29,37 +36,41 @@ macro_rules! create_iterable_impl {
 					}
 				}
 
-				objects.iter().map(|o| Ok(from_io!(o.trim().to_string(), T)?)).collect::<crate::Result<Self>>()
+				objects.iter().map(|o| Ok(from_io!(o.trim().to_string(), T)?)).collect::<crate::Result<Self::Output>>()
 			}
 		}
 	};
 }
 
-create_iterable_impl!(HashSet<T>, Eq, Hash);
-create_iterable_impl!(BinaryHeap<T>, Ord);
-create_iterable_impl!(BTreeSet<T>, Ord);
-create_iterable_impl!(LinkedList<T>);
-create_iterable_impl!(VecDeque<T>);
-create_iterable_impl!(Vec<T>);
+
+create_iterable_impl!(HashSet, Eq, Hash);
+create_iterable_impl!(BinaryHeap, Ord);
+create_iterable_impl!(BTreeSet, Ord);
+create_iterable_impl!(LinkedList);
+create_iterable_impl!(VecDeque);
+create_iterable_impl!(Vec);
 
 
-impl <T:IoDeSer> IoDeSer for [T] {
+/*impl <'a,T:IoDeSer<'a>> IoDeSer<'_> for [T] {
+	type Output =[T];
+
 	fn to_io_string(&self, _tab: u8) -> String {
 		todo!()
 	}
 
-	fn from_io_string(_io_input: &mut String) -> crate::Result<Self> where Self: Sized {
+	fn from_io_string(_io_input: &mut String) -> crate::Result<Self::Output>  {
 		todo!()
 	}
-}
+}*/
 
 // arrays
-impl <T: IoDeSer, const N: usize> IoDeSer for [T; N]{
+impl <'a,T: IoDeSer<'a>, const N: usize> IoDeSer<'a> for [T; N]{
+	type Output = [T::Output; N];
     fn to_io_string(&self, tab: u8) -> String {
 		format!("|\n{}\n{}|",iterable_ser(&mut self.into_iter(), tab), (0..tab).map(|_| "\t").collect::<String>())
     }
 
-    fn from_io_string(io_input: &mut String) -> crate::Result<Self>{
+    fn from_io_string(io_input: &mut String) -> crate::Result<Self::Output>{
 		if io_input.lines().count()<3 {return Err(Error::IoFormatError(IoFormatError{ io_input: io_input.to_owned(), kind: "Input string needs at least 3 lines. Perhaps it is being serialized from wrong type?".to_string() }));}
 
 		let _ = delete_tabulator(io_input)?;
@@ -82,7 +93,7 @@ impl <T: IoDeSer, const N: usize> IoDeSer for [T; N]{
 }
 
 #[inline]
-fn iterable_ser<'a, X: IoDeSer + 'a, T: Iterator<Item = &'a X>>(obj: T, tab: u8) -> String {
+fn iterable_ser<'de, 'a, X: IoDeSer<'de> + 'a, T: Iterator<Item = &'a X>>(obj: T, tab: u8) -> String {
 	let mut array_str = String::new();
 
 	for (index, x) in obj.enumerate() {
