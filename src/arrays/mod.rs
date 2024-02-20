@@ -43,6 +43,15 @@ create_iterable_impl!(VecDeque<T>);
 create_iterable_impl!(Vec<T>);
 
 
+impl <T:IoDeSer> IoDeSer for [T] {
+	fn to_io_string(&self, _tab: u8) -> String {
+		todo!()
+	}
+
+	fn from_io_string(_io_input: &mut String) -> crate::Result<Self> where Self: Sized {
+		todo!()
+	}
+}
 
 // arrays
 impl <T: IoDeSer, const N: usize> IoDeSer for [T; N]{

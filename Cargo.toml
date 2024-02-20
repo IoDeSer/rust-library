@@ -1,6 +1,6 @@
 [package]
 name = "iodeser"
-version = "0.3.3"
+version = "0.3.4"
 authors = ["Io-Maciek"]
 description = "Crate that allows to read from and write to .io file format."
 keywords = ["io", "file-format", "serialization", "deserialization"]
@@ -12,6 +12,6 @@ license="MIT"
 [lib]
 
 [dependencies]
-io_deser = { path="./io_deser", version = "0.3.0" }
+io_deser = { path="./io_deser", version = "0.3.3" }
 paste = "1.0.14"
 array-init = "2.1.0"
