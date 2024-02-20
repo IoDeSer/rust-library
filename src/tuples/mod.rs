@@ -3,9 +3,8 @@ use crate::{IoDeSer, delete_tabulator, from_io};
 macro_rules! impl_tuple {
     ($t1:tt | $($idx:tt $t:tt),+ | $max:expr) => {
         #[automatically_derived]
-        impl <'a,$t1:IoDeSer<'a, Output=$t1>,$($t:IoDeSer<'a, Output=$t>,)+> IoDeSer<'_> for ($t1,$($t,)+){
+        impl <$t1:IoDeSer,$($t:IoDeSer,)+> IoDeSer for ($t1,$($t,)+){
 
-            type Output = ($t1,$($t,)+);
 
             fn to_io_string(&self, tab: u8) -> String {
                 let mut output = "|\n".to_string();
@@ -23,7 +22,7 @@ macro_rules! impl_tuple {
                 output
             }
 
-            fn from_io_string(io_input: &mut String) -> crate::Result<Self::Output> {
+            fn from_io_string(io_input: &mut String) -> crate::Result<Self> {
 		        if io_input.lines().count()<3 {return Err(crate::errors::Error::IoFormatError(crate::errors::IoFormatError{ io_input: io_input.to_owned(), kind: "Input string needs at least 3 lines. Perhaps it is being serialized from wrong type?".to_string() }));}
 		        let _ = delete_tabulator(io_input)?;
 

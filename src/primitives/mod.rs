@@ -5,16 +5,15 @@ use crate::errors::IoFormatError;
 macro_rules! impl_iodeser_primitive {
     ($type:ty) => {
         #[automatically_derived]
-        impl IoDeSer<'_> for $type {
+        impl IoDeSer for $type {
 
-            type Output = $type;
 
             #[inline]
             fn to_io_string(&self, _tab: u8) -> String {
                 format!("|{}|", self)
             }
 
-            fn from_io_string(io_input: &mut String) -> Result<Self::Output> {
+            fn from_io_string(io_input: &mut String) -> Result<Self> {
                 if io_input.chars().nth(0).unwrap() != '|' ||  io_input.chars().nth(io_input.len() - 1).unwrap() != '|'{
                     return Err(
                         crate::errors::IoFormatError{ io_input: io_input.to_owned(),kind: "String lacks vertical bars at the beginning or end".to_string() }.into()
@@ -32,14 +31,13 @@ macro_rules! impl_iodeser_primitive {
     };
 }
 
-impl IoDeSer<'_> for String {
-    type Output = String;
+impl IoDeSer for String {
     #[inline]
     fn to_io_string(&self, _tab: u8) -> String  {
         format!("|{}|", self)
     }
 
-    fn from_io_string(io_input: &mut String) -> Result<Self::Output>  {
+    fn from_io_string(io_input: &mut String) -> Result<Self>  {
         if io_input.len() < 2 {return Err(crate::errors::Error::IoFormatError(IoFormatError{ io_input: io_input.to_owned(), kind: "Input was too short. Perhaps it lacks vertical bar characters '|'?".to_string() }));}
         let chars: Vec<char> = io_input.chars().collect();
         let middle_chars: String = chars[1..chars.len() - 1].iter().collect();
@@ -47,51 +45,20 @@ impl IoDeSer<'_> for String {
     }
 }
 
-/*impl <'b, 'a> IoDeSer<'b> for &'a str
-where 'b : 'a{
-    type Output = &'a str;
-    #[inline]
-    fn to_io_string(&self, _tab: u8) -> String  {
-        format!("|{}|", &self)
-    }
-
-    fn from_io_string(io_input: &mut String) -> Result<Self::Output>  {
-        if io_input.len() < 2 {return Err(crate::errors::Error::IoFormatError(IoFormatError{ io_input: io_input.to_owned(), kind: "Input was too short. Perhaps it lacks vertical bar characters '|'?".to_string() }));}
-        let chars: Vec<char> = io_input.chars().collect();
-        let middle_chars:String = chars[1..chars.len() - 1].iter().collect();
-        Ok(Box::leak(middle_chars.into_boxed_str()))
-    }
-}*/
-
-impl <'a> IoDeSer<'_> for &'a str
+impl <'a> IoDeSer for &'a str
 {
-    type Output = &'a str;
     #[inline]
     fn to_io_string(&self, _tab: u8) -> String  {
         format!("|{}|", &self)
     }
 
-    fn from_io_string(io_input: &mut String) -> Result<Self::Output>  {
+    fn from_io_string(io_input: &mut String) -> Result<Self> {
         if io_input.len() < 2 {return Err(crate::errors::Error::IoFormatError(IoFormatError{ io_input: io_input.to_owned(), kind: "Input was too short. Perhaps it lacks vertical bar characters '|'?".to_string() }));}
         let chars: Vec<char> = io_input.chars().collect();
         let middle_chars:String = chars[1..chars.len() - 1].iter().collect();
         Ok(Box::leak(middle_chars.into_boxed_str()))
     }
 }
-
-
-/*impl IoDeSer for str {
-    type Type = String;
-    fn to_io_string(&self, _tab: u8) -> String {
-        format!("|{}|", self)
-    }
-
-    fn from_io_string(io_input: &mut String) -> Self::Type {
-        let chars: Vec<char> = io_input.chars().collect();
-        let middle_chars: String = chars[1..chars.len() - 1].iter().collect();
-        middle_chars
-    }
-}*/
 
 
 

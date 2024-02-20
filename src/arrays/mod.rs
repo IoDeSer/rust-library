@@ -8,21 +8,19 @@ use crate::errors::*;
 macro_rules! create_iterable_impl {
     ($ty:ident $(, $wh : ident)*) => {
 		#[automatically_derived]
-		impl <'a, T> IoDeSer<'a> for $ty<T>
-		where T:IoDeSer<'a>,
+		impl <T> IoDeSer for $ty<T>
+		where T:IoDeSer,
 		$(
-		T::Output: $wh,
+		T: $wh,
 		)*
 
 		{
-			type Output = $ty<T::Output>;
-
 			#[inline]
 			fn to_io_string(&self, tab: u8) -> String {
 				format!("|\n{}\n{}|",iterable_ser(&mut self.into_iter(), tab), (0..tab).map(|_| "\t").collect::<String>())
 			}
 
-			fn from_io_string(io_input: &mut String) -> crate::Result<Self::Output> {
+			fn from_io_string(io_input: &mut String) -> crate::Result<Self> {
         		if io_input.lines().count()<3 {return Err(Error::IoFormatError(IoFormatError{ io_input: io_input.to_owned(), kind: "Input string needs at least 3 lines. Perhaps it is being serialized from wrong type?".to_string() }));}
 
 				let _ = delete_tabulator(io_input)?;
@@ -36,7 +34,7 @@ macro_rules! create_iterable_impl {
 					}
 				}
 
-				objects.iter().map(|o| Ok(from_io!(o.trim().to_string(), T)?)).collect::<crate::Result<Self::Output>>()
+				objects.iter().map(|o| Ok(from_io!(o.trim().to_string(), T)?)).collect::<crate::Result<Self>>()
 			}
 		}
 	};
@@ -64,13 +62,12 @@ create_iterable_impl!(Vec);
 }*/
 
 // arrays
-impl <'a,T: IoDeSer<'a>, const N: usize> IoDeSer<'a> for [T; N]{
-	type Output = [T::Output; N];
+impl <T: IoDeSer, const N: usize> IoDeSer for [T; N]{
     fn to_io_string(&self, tab: u8) -> String {
 		format!("|\n{}\n{}|",iterable_ser(&mut self.into_iter(), tab), (0..tab).map(|_| "\t").collect::<String>())
     }
 
-    fn from_io_string(io_input: &mut String) -> crate::Result<Self::Output>{
+    fn from_io_string(io_input: &mut String) -> crate::Result<Self>{
 		if io_input.lines().count()<3 {return Err(Error::IoFormatError(IoFormatError{ io_input: io_input.to_owned(), kind: "Input string needs at least 3 lines. Perhaps it is being serialized from wrong type?".to_string() }));}
 
 		let _ = delete_tabulator(io_input)?;
@@ -93,7 +90,7 @@ impl <'a,T: IoDeSer<'a>, const N: usize> IoDeSer<'a> for [T; N]{
 }
 
 #[inline]
-fn iterable_ser<'de, 'a, X: IoDeSer<'de> + 'a, T: Iterator<Item = &'a X>>(obj: T, tab: u8) -> String {
+fn iterable_ser<'a,X: IoDeSer+'a, T: Iterator<Item = &'a X>>(obj: T, tab: u8) -> String {
 	let mut array_str = String::new();
 
 	for (index, x) in obj.enumerate() {
