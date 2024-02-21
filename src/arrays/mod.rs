@@ -5,6 +5,46 @@ use std::hash::Hash;
 use crate::{delete_tabulator, from_io, IoDeSer};
 use crate::errors::*;
 
+
+macro_rules! create_slice_impl {
+    ($t: ty) => {
+		impl <'a, T: IoDeSer> IoDeSer for $t {
+
+			fn to_io_string(&self, tab: u8) -> String {
+				format!("|\n{}\n{}|",iterable_ser(&mut self.iter(), tab), (0..tab).map(|_| "\t").collect::<String>())
+			}
+
+			fn from_io_string(io_input: &mut String) -> crate::Result<Self> where Self: Sized {
+				if io_input.lines().count()<3 {return Err(Error::IoFormatError(IoFormatError{ io_input: io_input.to_owned(), kind: "Input string needs at least 3 lines. Perhaps it is being serialized from wrong type?".to_string() }));}
+
+				let _ = delete_tabulator(io_input)?;
+				let mut objects: Vec<&str> = io_input.split_terminator("\n+\n").collect();
+
+				if objects.is_empty(){
+					if io_input.is_empty(){
+						objects = Vec::new();
+					} else{
+						objects = vec![io_input];
+					}
+				}
+
+
+				Ok(
+					Box::leak(
+							objects
+								.iter()
+								.map(|o|{
+									from_io!(o.trim().to_string(), T)
+								})
+								.collect::<crate::Result<Box<[T]>>>()?
+					)
+				)
+
+			}
+		}
+	};
+}
+
 macro_rules! create_iterable_impl {
     ($ty:ident $(, $wh : ident)*) => {
 		#[automatically_derived]
@@ -49,22 +89,14 @@ create_iterable_impl!(VecDeque);
 create_iterable_impl!(Vec);
 
 
-/*impl <'a,T:IoDeSer<'a>> IoDeSer<'_> for [T] {
-	type Output =[T];
+create_slice_impl!(&'a [T]);
+create_slice_impl!(&'a mut [T]);
 
-	fn to_io_string(&self, _tab: u8) -> String {
-		todo!()
-	}
-
-	fn from_io_string(_io_input: &mut String) -> crate::Result<Self::Output>  {
-		todo!()
-	}
-}*/
 
 // arrays
 impl <T: IoDeSer, const N: usize> IoDeSer for [T; N]{
     fn to_io_string(&self, tab: u8) -> String {
-		format!("|\n{}\n{}|",iterable_ser(&mut self.into_iter(), tab), (0..tab).map(|_| "\t").collect::<String>())
+		format!("|\n{}\n{}|",iterable_ser(&mut self.iter(), tab), (0..tab).map(|_| "\t").collect::<String>())
     }
 
     fn from_io_string(io_input: &mut String) -> crate::Result<Self>{
@@ -84,6 +116,7 @@ impl <T: IoDeSer, const N: usize> IoDeSer for [T; N]{
 		if &N != &objects.len(){
 			return Err(crate::errors::Error::ArrayLengthError(crate::errors::ArrayLengthError{ expected_size: N, received_size: objects.len() }));
 		}
+
 
 		array_init::try_array_init(|index| Ok(from_io!(objects[index].trim().to_string(), T)?))
     }
