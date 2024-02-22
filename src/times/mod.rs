@@ -1,5 +1,5 @@
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
-use crate::{delete_tabulator, from_io, IoDeSer, to_io};
+use crate::{delete_tabulator, from_io, IoDeSer};
 
 impl IoDeSer for Duration{
     fn to_io_string(&self, tab: u8) -> String {
