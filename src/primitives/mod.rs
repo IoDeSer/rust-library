@@ -14,16 +14,14 @@ macro_rules! impl_iodeser_primitive {
             }
 
             fn from_io_string(io_input: &mut String) -> Result<Self> {
-                if io_input.chars().nth(0).unwrap() != '|' ||  io_input.chars().nth(io_input.len() - 1).unwrap() != '|'{
+                let chrs = io_input.chars().collect::<Vec<char>>();
+                if chrs[0] != '|' ||  chrs[chrs.len() - 1] != '|'{
                     return Err(
                         crate::errors::IoFormatError{ io_input: io_input.to_owned(),kind: "String lacks vertical bars at the beginning or end".to_string() }.into()
                     );
                 }
-                if io_input.len() < 3 {return Err(crate::errors::Error::IoFormatError(IoFormatError{ io_input: io_input.to_owned(), kind: "Empty input".to_string() }));}
-
-
-                let chars: Vec<char> = io_input.chars().collect();
-                let middle_chars: String = chars[1..chars.len() - 1].iter().collect();
+                if chrs.len() < 3 {return Err(crate::errors::Error::IoFormatError(IoFormatError{ io_input: io_input.to_owned(), kind: "Empty input".to_string() }));}
+                let middle_chars: String = chrs[1..chrs.len() - 1].iter().collect();
 
                 Ok(<$type>::from_str(&middle_chars)?)
             }

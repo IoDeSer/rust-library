@@ -49,19 +49,19 @@ format!("|
 \t|123|
 |", i32::MAX, i32::MIN),vec_i32);
 
-compare_to!(&Test2 { char_eg: 'M'},
+compare_to!(&Test2 { char_eg: '❤'},
 "|
-\tchar_eg->|M|
+\tchar_eg->|❤|
 |", class_primitive);
 
-compare_to!(&Person { name: "example_name".to_string(), age: 1, test: Test { year: 2023, test2: Test2 { char_eg: 'z' } } },
+compare_to!(&Person { name: "example_name".to_string(), age: 1, test: Test { year: 2023, test2: Test2 { char_eg: '😍' } } },
 "|
 \tname->|example_name|
 \tage->|1|
 \ttest->|
 \t\tyear->|2023|
 \t\ttest2->|
-\t\t\tchar_eg->|z|
+\t\t\tchar_eg->|😍|
 \t\t|
 \t|
 |", class_in_class);
