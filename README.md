@@ -10,13 +10,14 @@ The current status of both serialization and deserialization:
 - [X] Hashmaps
 - [X] Structs (Named{} and tuple())
 - [X] Generics
-- [X] Combinations of all above
 - [X] Tuples
-- [ ] Option
-- [ ] Result
+- [X] &str type
+- [X] Slices
+- [X] Option
+- [X] Result
+- [X] Combinations of all above
 - [ ] Enums
-- [ ] &str type
-- [ ] Slices
+
 
 ### Capabilities
  - Serialization of [supported types](#functions-and-plans) using macro **to_io!()** using objects reference,

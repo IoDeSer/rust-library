@@ -53,11 +53,8 @@ impl IoDeSer for SystemTime{
 }
 
 #[cfg(feature = "chrono")]
-use crate::to_io;
-
-#[cfg(feature = "chrono")]
 impl IoDeSer for chrono::DateTime<chrono::Utc>{
-    fn to_io_string(&self, tab: u8)->String{format!("|{}|", &self.to_rfc3339())}
+    fn to_io_string(&self, _tab: u8)->String{format!("|{}|", &self.to_rfc3339())}
 
     #[inline]
     fn from_io_string(io_input:&mut String)->crate::Result<Self> where Self: Sized{
@@ -67,7 +64,7 @@ impl IoDeSer for chrono::DateTime<chrono::Utc>{
 
 #[cfg(feature = "chrono")]
 impl IoDeSer for chrono::DateTime<chrono::FixedOffset>{
-    fn to_io_string(&self, tab: u8)->String{format!("|{}|", &self.to_rfc3339())}
+    fn to_io_string(&self, _tab: u8)->String{format!("|{}|", &self.to_rfc3339())}
 
     #[inline]
     fn from_io_string(io_input:&mut String)->crate::Result<Self> where Self: Sized{
@@ -77,7 +74,7 @@ impl IoDeSer for chrono::DateTime<chrono::FixedOffset>{
 
 #[cfg(feature = "chrono")]
 impl IoDeSer for chrono::DateTime<chrono::Local>{
-    fn to_io_string(&self, tab: u8)->String{format!("|{}|", &self.to_rfc3339())}
+    fn to_io_string(&self, _tab: u8)->String{format!("|{}|", &self.to_rfc3339())}
 
     #[inline]
     fn from_io_string(io_input:&mut String)->crate::Result<Self> where Self: Sized{
@@ -87,7 +84,7 @@ impl IoDeSer for chrono::DateTime<chrono::Local>{
 
 #[cfg(feature = "chrono")]
 impl IoDeSer for chrono::NaiveDate{
-    fn to_io_string(&self, tab: u8)->String{format!("|{}|", &self.format("%Y-%m-%dT00:00:00.00+00:00"))}
+    fn to_io_string(&self, _tab: u8)->String{format!("|{}|", &self.format("%Y-%m-%dT00:00:00.00+00:00"))}
 
     #[inline]
     fn from_io_string(io_input:&mut String)->crate::Result<Self> where Self: Sized{
@@ -97,7 +94,7 @@ impl IoDeSer for chrono::NaiveDate{
 
 #[cfg(feature = "chrono")]
 impl IoDeSer for chrono::NaiveDateTime{
-    fn to_io_string(&self, tab: u8)->String{format!("|{}|", &self.format("%Y-%m-%dT%H:%M:%S%.f+00:00"))}
+    fn to_io_string(&self, _tab: u8)->String{format!("|{}|", &self.format("%Y-%m-%dT%H:%M:%S%.f+00:00"))}
 
     #[inline]
     fn from_io_string(io_input:&mut String)->crate::Result<Self> where Self: Sized{
@@ -108,7 +105,7 @@ impl IoDeSer for chrono::NaiveDateTime{
 #[cfg(feature = "chrono")]
 impl IoDeSer for chrono::TimeDelta{
     fn to_io_string(&self, tab: u8)->String{
-       to_io!(self.to_std().unwrap())
+       self.to_std().unwrap().to_io_string(tab)
     }
 
     #[inline]
