@@ -53,6 +53,9 @@ impl IoDeSer for SystemTime{
 }
 
 #[cfg(feature = "chrono")]
+use crate::to_io;
+
+#[cfg(feature = "chrono")]
 impl IoDeSer for chrono::DateTime<chrono::Utc>{
     fn to_io_string(&self, tab: u8)->String{format!("|{}|", &self.to_rfc3339())}
 
