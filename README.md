@@ -31,52 +31,59 @@ See [example](#example-usage) below for usage of those capabilities.
 ```rust
 use iodeser::*; // required import
 
-#[derive(IoDeSer, Debug)] // required macro derive IoDeSer, Debug is not required
-struct Person<T: IoDeSer> {
+#[derive(IoDeSer, Debug, PartialEq)] // required macro derive IoDeSer, Debug and PartialEq is not required
+struct Person<'a, T: IoDeSer> {
     #[io_name("Name")]      // optional renaming
-    pub name: String,
+    pub name: &'a str,
+    #[io_name("SecondName")]  // optional renaming
+    pub second_name: Option<&'a str>,
     #[io_name("LastName")]  // optional renaming
-    pub last_name: String,
+    pub last_name: &'a str,
     #[io_name("Age")]       // optional renaming
     #[io_order(LAST)]       // optional ordering using FIRST or LAST keyword
     pub age: u8,
     #[io_name("Address")]   // optional renaming
     #[io_order(FIRST)]      // optional ordering using FIRST or LAST keyword
-    pub address: Vec<Address<T>>,
+    pub address: Vec<Address<'a, T>>,
 }
 
-#[derive(IoDeSer, Debug)] // required macro derive, Debug is not required
-struct Address<T: IoDeSer> {
+#[derive(IoDeSer, Debug, PartialEq)] // required macro derive, Debug and PartialEq is not required
+struct Address<'a, T: IoDeSer> {
     #[io_order(3)]          // optional ordering using integer
-    pub city: String,
+    pub city: &'a str,
     #[io_order(1)]          // optional ordering using integer
     pub number: T,
     #[io_order(2)]          // optional ordering using integer
-    pub street: String,
+    pub street: &'a str,
 }
 
 fn main() {
     let person = Person::<u8> {
-        name: "John".to_string(),
-        last_name: "Kowalski".to_string(),
+        name: "John",
+        second_name: None,
+        last_name: "Kowalski",
         age: 21,
-        address: vec![Address::<u8> {
-            city: "Warsaw".to_string(),
-            number: 65,
-            street: "Tęczowa".to_string(),
-        }, Address::<u8> {
-            city: "Hamburg".to_string(),
-            number: 220,
-            street: "Strasse".to_string(),
-        }],
+        address: vec![
+            Address::<u8> {
+                city: "Warsaw",
+                number: 65,
+                street: "Tęczowa",
+            },
+            Address::<u8> {
+                city: "Hamburg",
+                number: 220,
+                street: "Strasse",
+            },
+        ],
     };
 
-    let io_serialization: String = to_io!(&person); // serialization by reference
-    /* saving to file for example */
+    let io_serialization: String = to_io!(&person); // serialization
     println!("{}", &io_serialization);
 
     let person_deserialization: Person<u8> = from_io!(io_serialization, Person<u8>).unwrap(); // deserialization
     println!("{:?}", &person_deserialization);
+
+    assert_eq!(person, person_deserialization);
 }
 /*
 Output:
@@ -95,9 +102,10 @@ Output:
                 |
         |
         Name->|John|
+        SecondName->|||
         LastName->|Kowalski|
         Age->|21|
 |
-Person { name: "John", last_name: "Kowalski", age: 21, address: [Address { city: "Warsaw", number: 65, street: "Tęczowa" }, Address { city: "Hamburg", number: 220, street: "Strasse" }] }
+Person { name: "John", second_name: None, last_name: "Kowalski", age: 21, address: [Address { city: "Warsaw", number: 65, street: "Tęczowa" }, Address { city: "Hamburg", number: 220, street: "Strasse" }] }
 */
 ```

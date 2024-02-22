@@ -34,6 +34,8 @@ struct Test2<T :IoDeSer>{
 
 compare_from!(&"string comparison to IO file format".to_string(), String, string);
 compare_from!(&i64::MAX, i64, i64);
+compare_from!(&None::<i32>, Option<i32>, optional);
+compare_from!(&vec![None, Some(5), None, None,None, Some(45656), Some(-412345), Some(34356), None], Vec<Option<i32>>, optional_vec);
 compare_from!(&i32::MIN, i32, i32);
 compare_from!(&-5234.529348, f64, f64);
 compare_from!(&vec![1,3,2224,-1232,i32::MAX], Vec<i32>, vec_i32);

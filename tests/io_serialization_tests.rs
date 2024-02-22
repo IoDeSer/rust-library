@@ -54,6 +54,23 @@ compare_to!(&Test2 { char_eg: '❤'},
 \tchar_eg->|❤|
 |", class_primitive);
 
+
+compare_to!(&None::<u8>,
+"|||", optional);
+
+compare_to!(&vec![None, Some("asd"), None, None, Some("32")],
+"|
+\t|||
+\t+
+\t|asd|
+\t+
+\t|||
+\t+
+\t|||
+\t+
+\t|32|
+|", optional_vec);
+
 compare_to!(&Person { name: "example_name".to_string(), age: 1, test: Test { year: 2023, test2: Test2 { char_eg: '😍' } } },
 "|
 \tname->|example_name|
