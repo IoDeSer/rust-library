@@ -18,6 +18,7 @@ The current status of both serialization and deserialization:
 - [X] Combinations of all above
 - [ ] Enums
 
+Full list of supported types can be found in this [crate's documentation](https://docs.rs/iodeser/latest/iodeser/trait.IoDeSer.html#foreign-impls).
 
 ### Capabilities
  - Serialization of [supported types](#functions-and-plans) using macro **to_io!()** using objects reference,

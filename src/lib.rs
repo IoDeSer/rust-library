@@ -3,27 +3,16 @@
 //!
 //! IoDeSer defines traits, methods, macros and implementations for basic Rust types. See this crate's [source code] for additional information.
 //!
-//!
-//! Currently supports the below types:
-//! - Vec<T>
-//! - HashMap<K, V>
-//! - Array [T; N]
-//! - Tuples (T1, T2...)
-//! - Primitive types (un/signed integer, char, float, boolean)
-//! - String
-//! - HashSet<T>
-//! - BinaryHeap<T>
-//! - BTreeSet<T>
-//! - LinkedList<T>
-//! - VecDeque<T>
-//! - HashMap<T, K>
-//! - BTreeMap<T, K>
-//!
 //! ## Status
 //! This crate is in alpha status and **should not** be used in production environment.
 //!
 //! ## Design
 //! The main foundation of this project is cross-language compatibility. See the [project account] for more information about other language libraries status, goals and status.
+//!
+//! ## Features
+//! IoDeSer supports few features that will add additional de/serialization support for external crates.
+//!
+//! At this moment in time the only externally supported crate is [chrono]. See [cargo documentation] for examples of specifying optional features.
 //!
 //! ## Examples
 //! ```rust
@@ -87,6 +76,8 @@
 //!
 //! [source code]: https://github.com/IoDeSer/rust-library
 //! [project account]: https://github.com/IoDeSer
+//! [chrono]: https://docs.rs/chrono/latest/chrono/index.html
+//! [cargo documentation]: https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html#choosing-features
 
 //////////////////////////////////////
 

@@ -58,7 +58,9 @@ impl IoDeSer for chrono::DateTime<chrono::Utc>{
 
     #[inline]
     fn from_io_string(io_input:&mut String)->crate::Result<Self> where Self: Sized{
-        Ok(chrono::DateTime::parse_from_rfc3339(from_io!(io_input, &str)?).expect("TODO").to_utc())
+        Ok(chrono::DateTime::parse_from_rfc3339(from_io!(io_input, &str)?).map_err(
+            |e| crate::errors::Error::io_format(io_input.to_string(), e.to_string())
+        )?.to_utc())
     }
 }
 
@@ -68,7 +70,9 @@ impl IoDeSer for chrono::DateTime<chrono::FixedOffset>{
 
     #[inline]
     fn from_io_string(io_input:&mut String)->crate::Result<Self> where Self: Sized{
-        Ok(chrono::DateTime::parse_from_rfc3339(from_io!(io_input, &str)?).expect("TODO"))
+        Ok(chrono::DateTime::parse_from_rfc3339(from_io!(io_input, &str)?).map_err(
+            |e| crate::errors::Error::io_format(io_input.to_string(), e.to_string())
+        )?)
     }
 }
 
@@ -88,7 +92,9 @@ impl IoDeSer for chrono::NaiveDate{
 
     #[inline]
     fn from_io_string(io_input:&mut String)->crate::Result<Self> where Self: Sized{
-        Ok(chrono::NaiveDate::parse_from_str(from_io!(io_input, &str)?, "%Y-%m-%dT%H:%M:%S%.f+%Z").unwrap())
+        Ok(chrono::NaiveDate::parse_from_str(from_io!(io_input, &str)?, "%Y-%m-%dT%H:%M:%S%.f+%Z").map_err(
+            |e| crate::errors::Error::io_format(io_input.to_string(), e.to_string())
+        )?)
     }
 }
 
@@ -98,7 +104,10 @@ impl IoDeSer for chrono::NaiveDateTime{
 
     #[inline]
     fn from_io_string(io_input:&mut String)->crate::Result<Self> where Self: Sized{
-        Ok(chrono::NaiveDateTime::parse_from_str(from_io!(io_input, &str)?, "%Y-%m-%dT%H:%M:%S%.f+%Z").unwrap())
+        Ok(chrono::NaiveDateTime::parse_from_str(from_io!(io_input, &str)?, "%Y-%m-%dT%H:%M:%S%.f+%Z")
+            .map_err(
+                |e| crate::errors::Error::io_format(io_input.to_string(), e.to_string())
+            )?)
     }
 }
 
@@ -112,5 +121,24 @@ impl IoDeSer for chrono::TimeDelta{
     fn from_io_string(io_input:&mut String)->crate::Result<Self> where Self: Sized{
         let dur = from_io!(io_input, std::time::Duration)?; // TODO better implementation for negative time delta
         Ok(chrono::TimeDelta::from_std(dur).unwrap())
+    }
+}
+
+#[cfg(feature = "chrono")]
+impl IoDeSer for chrono::NaiveTime{
+    fn to_io_string(&self, _tab: u8)->String{
+        format!("|{}|", self.format("1970-01-01T%H:%M:%S%.f+00:00"))
+    }
+
+    #[inline]
+    fn from_io_string(io_input:&mut String)->crate::Result<Self> where Self: Sized{
+        Ok(chrono::NaiveTime::parse_from_str(
+            from_io!(io_input, &str)?,
+            "%Y-%m-%dT%H:%M:%S%.f+%Z"
+        )
+               .map_err(
+                   |e| crate::errors::Error::io_format(io_input.to_string(), e.to_string())
+               )?
+        )
     }
 }
