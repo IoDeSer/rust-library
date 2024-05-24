@@ -12,7 +12,6 @@ enum MyGenericEnum<T1: IoDeSer, T2: IoDeSer> {
     Val3 { a: T1, b: T2 },
 }
 
-
 fn main() {
     let my_struct = MyGenericStruct::<String> { value: "generic value here!".to_string() };
     let io_string = to_io!(&my_struct);
