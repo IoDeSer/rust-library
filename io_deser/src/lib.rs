@@ -1,19 +1,23 @@
+#![allow(dead_code)]
+
 extern crate proc_macro;
 
 use proc_macro2::{Ident, Literal};
 use proc_macro::TokenStream;
 use syn::{parse_macro_input, DeriveInput, Visibility, TypeGenerics, WhereClause, ImplGenerics, Type};
 use quote::{quote};
+use crate::enum_type::{create_from_enum, handle_enum};
 use crate::fields_ordering::FieldOrder;
 use crate::fields_renaming::parse_fields_naming;
-use crate::struct_type::{StructType, IterType, de_from_struct_type};
+use crate::struct_type::{StructType, IterType, de_from_struct_type, ReturnType};
 
 mod fields_ordering;
 mod fields_renaming;
 mod struct_type;
+mod enum_type;
 
 #[inline]
-fn create_fields_from_data(input: &DeriveInput) -> StructType {
+fn create_fields_from_data(input: &DeriveInput) -> ReturnType {
 	if let syn::Data::Struct(ref data) = input.data {
 		if let syn::Fields::Named(ref fields) = data.fields {
 			let mut fields_order = fields.named
@@ -27,25 +31,30 @@ fn create_fields_from_data(input: &DeriveInput) -> StructType {
 				})
 				.collect::<Vec<_>>();
 			fields_order.sort();
-			StructType::NamedFields(fields_order)
+			ReturnType::Struct(StructType::NamedFields(fields_order))
 		} else if let syn::Fields::Unnamed(ref unnamed) = data.fields{
-			StructType::Tuple(
-				unnamed.unnamed
-				.iter()
-				.filter_map(|f|{
-					if let Visibility::Public(_) = f.vis{
-						Some(&f.ty)
-					}else {
-						None
-					}
-				})
-				.collect::<Vec<&Type>>()
+			ReturnType::Struct(
+				StructType::Tuple(
+					unnamed.unnamed
+					.iter()
+					.filter_map(|f|{
+						if let Visibility::Public(_) = f.vis{
+							Some(&f.ty)
+						}else {
+							None
+						}
+					})
+					.collect::<Vec<&Type>>()
+				)
 			)
 		}
 		else {
 			panic!("IoDeSer attibute is for structs only")
 		}
-	} else {
+	}else if let syn::Data::Enum(ref data) = input.data{
+		ReturnType::Enum(create_from_enum(data))
+	}
+	else {
 		panic!("IoDeSer attibute is for structs only")
 	}
 }
@@ -68,15 +77,28 @@ pub fn opis_derive_macro(input: TokenStream) -> TokenStream {
 	let struct_name = &input.ident;
 	let (impl_generics, ty_generics, where_clause) = &input.generics.split_for_impl();
 
-	let fields_order = create_fields_from_data(&input);
-
 	// TODO struct type to handle tuple type
+
+
+
+	match create_fields_from_data(&input){
+		ReturnType::Struct(s) => {
+			handle_struct(s, struct_name, impl_generics, ty_generics, where_clause)
+		}
+		ReturnType::Enum(e) => {
+			handle_enum(e, struct_name, impl_generics, ty_generics, where_clause)
+		}
+	}.into()
+}
+
+
+fn handle_struct(fields_order: StructType, struct_name: &Ident,
+				 impl_generics: &ImplGenerics, ty_generics:&TypeGenerics, where_clause: &Option<&WhereClause>)->proc_macro2::TokenStream{
 
 	let mut to_io_string_tokens_implementation = quote!{};
 	let mut _vector_field_maker = quote!{};
 	let mut _struct_return_definition = quote!{};
 	let mut index_of = 0;
-
 
 	let is_tuple_struct = match &fields_order{
 		StructType::NamedFields(_) => false,
@@ -86,6 +108,8 @@ pub fn opis_derive_macro(input: TokenStream) -> TokenStream {
 			true
 		}
 	};
+
+
 	for field_type in fields_order{
 		match field_type{
 
@@ -189,7 +213,6 @@ pub fn opis_derive_macro(input: TokenStream) -> TokenStream {
 }
 
 
-
 fn implement_iodeser_trait(struct_name: &Ident, to_io_string_tokens_implementation:proc_macro2::TokenStream
 						   , _struct_return_definition:proc_macro2::TokenStream,
 						   impl_generics: &ImplGenerics, ty_generics:&TypeGenerics, where_clause: &Option<&WhereClause>,
@@ -216,10 +239,6 @@ fn implement_iodeser_trait(struct_name: &Ident, to_io_string_tokens_implementati
 					).into());
 				}
 
-				if !io_input.starts_with('|') || !io_input.ends_with('|') {
-					return Err(iodeser::Error::io_format(io_input.clone(),"String lacks vertical bars at the beginning or end".to_string())
-						.into());
-				}
 
 				let mut ret = String::new();
 				for line in io_input.lines().filter(|line| line.len() > 1) {
@@ -237,3 +256,6 @@ fn implement_iodeser_trait(struct_name: &Ident, to_io_string_tokens_implementati
         }
     }
 }
+
+
+//TODO escape characters in String values, for example new line should be = \n (destroy whole format)

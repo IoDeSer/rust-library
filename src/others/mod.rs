@@ -33,6 +33,20 @@ impl <T:IoDeSer> IoDeSer for Option<T>{
     }
 }
 
+impl  IoDeSer for (){
+    fn to_io_string(&self, _tab: u8) -> String {
+        "|||".to_string()
+    }
+
+    fn from_io_string(io_input: &mut String) -> crate::Result<Self> where Self: Sized {
+        if io_input == "|||"{
+            Ok(())
+        }else{
+            todo!()
+        }
+    }
+}
+
 impl <T:IoDeSer, E:IoDeSer> IoDeSer for Result<T, E>{
     fn to_io_string(&self, _tab: u8) -> String {
         match self{

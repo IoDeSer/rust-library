@@ -29,6 +29,7 @@ macro_rules! impl_iodeser_primitive {
     };
 }
 
+#[automatically_derived]
 impl IoDeSer for String {
     #[inline]
     fn to_io_string(&self, _tab: u8) -> String  {
@@ -43,6 +44,7 @@ impl IoDeSer for String {
     }
 }
 
+#[automatically_derived]
 impl <'a> IoDeSer for &'a str
 {
     #[inline]

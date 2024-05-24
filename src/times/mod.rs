@@ -1,6 +1,10 @@
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
+#[cfg(feature = "chrono")]
+use chrono::TimeDelta;
+
 use crate::{delete_tabulator, from_io, IoDeSer};
 
+#[automatically_derived]
 impl IoDeSer for Duration{
     fn to_io_string(&self, tab: u8) -> String {
         let tab = (0..tab).map(|_| "\t").collect::<String>();
@@ -27,7 +31,7 @@ impl IoDeSer for Duration{
 
         if !seconds.starts_with("seconds->|") || !nano_seconds.starts_with("nanoseconds->|"){
             return Err(
-                crate::Error::io_format(io_input.to_string(), "Fields 'seconds' or 'nanoseconds' were not found during SystemTime type deserialization.".to_string()).into()
+                crate::Error::io_format(io_input.to_string(), "Fields 'seconds' or 'nanoseconds' were not found during Duration type deserialization.".to_string()).into()
             );
         }
 
@@ -38,6 +42,7 @@ impl IoDeSer for Duration{
     }
 }
 
+#[automatically_derived]
 impl IoDeSer for SystemTime{
     #[inline]
     fn to_io_string(&self, tab: u8) -> String {
@@ -53,6 +58,7 @@ impl IoDeSer for SystemTime{
 }
 
 #[cfg(feature = "chrono")]
+#[automatically_derived]
 impl IoDeSer for chrono::DateTime<chrono::Utc>{
     fn to_io_string(&self, _tab: u8)->String{format!("|{}|", &self.to_rfc3339())}
 
@@ -65,6 +71,7 @@ impl IoDeSer for chrono::DateTime<chrono::Utc>{
 }
 
 #[cfg(feature = "chrono")]
+#[automatically_derived]
 impl IoDeSer for chrono::DateTime<chrono::FixedOffset>{
     fn to_io_string(&self, _tab: u8)->String{format!("|{}|", &self.to_rfc3339())}
 
@@ -77,6 +84,7 @@ impl IoDeSer for chrono::DateTime<chrono::FixedOffset>{
 }
 
 #[cfg(feature = "chrono")]
+#[automatically_derived]
 impl IoDeSer for chrono::DateTime<chrono::Local>{
     fn to_io_string(&self, _tab: u8)->String{format!("|{}|", &self.to_rfc3339())}
 
@@ -87,6 +95,7 @@ impl IoDeSer for chrono::DateTime<chrono::Local>{
 }
 
 #[cfg(feature = "chrono")]
+#[automatically_derived]
 impl IoDeSer for chrono::NaiveDate{
     fn to_io_string(&self, _tab: u8)->String{format!("|{}|", &self.format("%Y-%m-%dT00:00:00.00+00:00"))}
 
@@ -99,6 +108,7 @@ impl IoDeSer for chrono::NaiveDate{
 }
 
 #[cfg(feature = "chrono")]
+#[automatically_derived]
 impl IoDeSer for chrono::NaiveDateTime{
     fn to_io_string(&self, _tab: u8)->String{format!("|{}|", &self.format("%Y-%m-%dT%H:%M:%S%.f+00:00"))}
 
@@ -112,6 +122,7 @@ impl IoDeSer for chrono::NaiveDateTime{
 }
 
 #[cfg(feature = "chrono")]
+#[automatically_derived]
 impl IoDeSer for chrono::TimeDelta{
     fn to_io_string(&self, tab: u8)->String{
        self.to_std().unwrap().to_io_string(tab)
@@ -119,12 +130,12 @@ impl IoDeSer for chrono::TimeDelta{
 
     #[inline]
     fn from_io_string(io_input:&mut String)->crate::Result<Self> where Self: Sized{
-        let dur = from_io!(io_input, std::time::Duration)?; // TODO better implementation for negative time delta
-        Ok(chrono::TimeDelta::from_std(dur).unwrap())
+        Ok(TimeDelta::from_std(from_io!(io_input, Duration)?).unwrap())
     }
 }
 
 #[cfg(feature = "chrono")]
+#[automatically_derived]
 impl IoDeSer for chrono::NaiveTime{
     fn to_io_string(&self, _tab: u8)->String{
         format!("|{}|", self.format("1970-01-01T%H:%M:%S%.f+00:00"))

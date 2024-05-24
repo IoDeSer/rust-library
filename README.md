@@ -16,7 +16,7 @@ The current status of both serialization and deserialization:
 - [X] Option
 - [X] Result
 - [X] Combinations of all above
-- [ ] Enums
+- [X] Enums (Unit, Unnamed, Named)
 
 Full list of supported types can be found in this [crate's documentation](https://docs.rs/iodeser/latest/iodeser/trait.IoDeSer.html#foreign-impls).
 

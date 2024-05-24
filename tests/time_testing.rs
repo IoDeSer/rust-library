@@ -1,4 +1,5 @@
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use chrono::TimeDelta;
 use iodeser::*;
 #[test]
 fn system_time(){
@@ -26,4 +27,17 @@ fn naive_time(){
 fn duration(){
     let x = Duration::from_secs(12378);
     println!("{}",to_io!(&x));
+}
+#[cfg(feature = "chrono")]
+#[test]
+fn time_delta_negative(){
+    let x = TimeDelta::seconds(i64::MAX/ 10000);
+
+
+    let io = to_io!(&x);
+    println!("{}", &io);
+
+    let f = from_io!(io, TimeDelta).unwrap();
+    println!("{:?}", f);
+    println!("{:?}", x);
 }

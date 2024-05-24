@@ -1,7 +1,15 @@
 use std::fmt::{Display, Formatter};
 use proc_macro2::{Ident, TokenStream};
 use quote::{quote, ToTokens};
-use syn::Type;
+use syn::{Type};
+use crate::enum_type::{EnumType};
+
+
+
+pub(crate) enum ReturnType<'a>{
+	Struct(StructType<'a>),
+	Enum(EnumType<'a>)
+}
 
 pub(crate) enum StructType<'a> {
     NamedFields(Vec<crate::FieldOrder<'a>>),
@@ -18,10 +26,11 @@ impl <'a> Display for StructType<'a>{
 					ret += &format!("{:?}\n", &x.into_token_stream());
 				}
 				ret
-			}
+			},
 		})
 	}
 }
+
 
 
 pub(crate) enum IterType<'a> {
@@ -56,7 +65,7 @@ impl<'a> Iterator for StructType<'a> {
 				}
 				Some(IterType::Type(t.remove(0)))
 			},
-        }
+		}
     }
 
     fn count(self) -> usize
