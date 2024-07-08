@@ -1,6 +1,6 @@
 [package]
 name = "iodeser"
-version = "0.5.0"
+version = "0.5.1"
 authors = ["Io-Maciek"]
 description = "Crate that allows to read from and write to .io file format."
 keywords = ["io", "file-format", "serialization", "deserialization"]
