@@ -274,7 +274,6 @@ pub(crate) fn create_from_enum(data: &DataEnum) -> Vec<EnumTypes> {
 
 pub(crate) fn handle_enum(enums_fields: EnumType, enum_name: &Ident,
                           impl_generics: &ImplGenerics, ty_generics: &TypeGenerics, where_clause: &Option<&WhereClause>) -> proc_macro2::TokenStream {
-    //let mut to_io_string_impl_derive = quote! {};
 
     let to_io_token_implementation = to_io_token_implementation(&enums_fields, enum_name);
     let from_io_token_implementation = from_io_token_implementation(&enums_fields, enum_name);

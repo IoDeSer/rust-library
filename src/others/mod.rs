@@ -1,4 +1,5 @@
 use crate::{from_io, IoDeSer};
+use crate::errors::IoFormatError;
 
 macro_rules! create_reference_impl {
     ($t:ty) => {
@@ -42,7 +43,7 @@ impl  IoDeSer for (){
         if io_input == "|||"{
             Ok(())
         }else{
-            todo!()
+            Err(IoFormatError{ io_input: io_input.to_string(), kind: "There was an error in deserializing '()' type".to_string() }.into()) //todo better error message
         }
     }
 }
