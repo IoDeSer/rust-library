@@ -11,7 +11,7 @@ fn main() {
 
     let deserialized_integer = from_io!(io_string_integer, i32).unwrap();
     let deserialized_string = from_io!(io_string_string, String).unwrap();
-    let deserialized_str= from_io!(io_string_str, &str).unwrap();
+    let deserialized_str = from_io!(io_string_str, &str).unwrap();
 
     assert_eq!(deserialized_integer, integer);
     assert_eq!(deserialized_string, string);

@@ -15,4 +15,6 @@ license="MIT"
 io_deser = { path="./io_deser", version = "0.4.0" }
 paste = "1.0.14"
 array-init = "2.1.0"
-chrono = {version = "0.4.31", optional = true}
+chrono = {version = "0.4.31", optional = true, features = ["serde"]}
+serde_json = {version = "1.0.117", optional = true}
+serde = { version = "1.0.189" , features = ["derive"], optional = true }

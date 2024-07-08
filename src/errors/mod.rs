@@ -20,7 +20,7 @@ macro_rules! from_implementation {
 }
 
 #[derive(Debug)]
-pub enum ParseError{
+pub enum ParseError {
     ParseIntError(ParseIntError),
     ParseCharError(ParseCharError),
     ParseFloatError(ParseFloatError),
@@ -35,7 +35,7 @@ from_implementation!(ParseBoolError);
 
 impl Display for ParseError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}",match self {
+        write!(f, "{}", match self {
             ParseError::ParseIntError(i) => i.to_string(),
             ParseError::ParseCharError(c) => c.to_string(),
             ParseError::ParseFloatError(f_e) => f_e.to_string(),
@@ -44,14 +44,14 @@ impl Display for ParseError {
     }
 }
 
-impl std::error::Error for ParseError{}
+impl std::error::Error for ParseError {}
 
 
 ///////////////
 ///////////////
 
 #[derive(Debug)]
-pub struct ArrayLengthError{
+pub struct ArrayLengthError {
     pub expected_size: usize,
     pub received_size: usize,
 }
@@ -63,7 +63,7 @@ impl Display for ArrayLengthError {
 }
 
 #[derive(Debug)]
-pub struct FieldNotFoundError{
+pub struct FieldNotFoundError {
     pub field_name: String,
     struct_name: String,
 }
@@ -74,31 +74,31 @@ impl Display for FieldNotFoundError {
     }
 }
 
-impl FieldNotFoundError{
-    pub fn new(field:String, struct_name:String)->FieldNotFoundError{FieldNotFoundError{ field_name: field, struct_name }}
+impl FieldNotFoundError {
+    pub fn new(field: String, struct_name: String) -> FieldNotFoundError { FieldNotFoundError { field_name: field, struct_name } }
 }
 
 #[derive(Debug)]
-pub struct IoFormatError{
-    pub io_input:String,
-    pub kind: String
+pub struct IoFormatError {
+    pub io_input: String,
+    pub kind: String,
 }
 
-impl From<IoFormatError> for Error{
+impl From<IoFormatError> for Error {
     fn from(value: IoFormatError) -> Self {
         Error::IoFormatError(value)
     }
 }
 
-impl Display for IoFormatError{
+impl Display for IoFormatError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Error was found in .io formatted string: {}Message: {}",self.io_input, self.kind)
+        write!(f, "Error was found in .io formatted string: {}Message: {}", self.io_input, self.kind)
     }
 }
 
 #[derive(Debug)]
 /// Represents all errors that might occur during deserialization.
-pub enum Error{
+pub enum Error {
     /// See [`ParseError`]
     ParseError(ParseError),
     /// See [`IoFormatError`]
@@ -116,36 +116,35 @@ impl Display for Error {
             Error::ParseError(parse) => parse.to_string(),
             Error::IoFormatError(io_error) => io_error.to_string(),
             Error::ArrayLengthError(array_error) => array_error.to_string(),
-            Error::FieldNotFoundError(field_error)=> field_error.to_string(),
+            Error::FieldNotFoundError(field_error) => field_error.to_string(),
         })
     }
 }
 
-impl std::error::Error for Error{}
+impl std::error::Error for Error {}
 
-impl From<ParseError> for Error{
+impl From<ParseError> for Error {
     fn from(value: ParseError) -> Self {
         Error::ParseError(value)
     }
 }
 
-impl From<ArrayLengthError> for Error{
+impl From<ArrayLengthError> for Error {
     fn from(value: ArrayLengthError) -> Self {
         Error::ArrayLengthError(value)
     }
 }
 
-impl Error{
-    pub fn io_format(io_input: String, kind: String)->Error{
-        Error::IoFormatError(IoFormatError{ io_input, kind })
+impl Error {
+    pub fn io_format(io_input: String, kind: String) -> Error {
+        Error::IoFormatError(IoFormatError { io_input, kind })
     }
 
-    pub fn field_not_found(field_name:String, struct_name:String)->Error{
-        Error::FieldNotFoundError(FieldNotFoundError{ field_name, struct_name })
+    pub fn field_not_found(field_name: String, struct_name: String) -> Error {
+        Error::FieldNotFoundError(FieldNotFoundError { field_name, struct_name })
     }
 
-    pub fn length_error(received_len:usize, expected_len: usize)->Error{
-        Error::ArrayLengthError(ArrayLengthError{ expected_size: expected_len, received_size: received_len })
+    pub fn length_error(received_len: usize, expected_len: usize) -> Error {
+        Error::ArrayLengthError(ArrayLengthError { expected_size: expected_len, received_size: received_len })
     }
 }
-

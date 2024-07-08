@@ -1,4 +1,5 @@
-use iodeser::*; // required import
+use iodeser::*;
+// required import
 use chrono::NaiveDate;
 
 #[derive(IoDeSer, Debug, PartialEq)] // required macro derive IoDeSer, Debug and PartialEq is not required
@@ -28,9 +29,9 @@ struct Address<'a> {
 }
 
 #[derive(IoDeSer, Debug, PartialEq)] // required macro derive, Debug and PartialEq is not required
-enum AddressNumberType<'a>{
+enum AddressNumberType<'a> {
     Numeric(u16),
-    String(&'a str)
+    String(&'a str),
 }
 
 fn main() {
@@ -38,7 +39,7 @@ fn main() {
         name: "John",
         second_name: None,
         last_name: "Kowalski",
-        birth_date: NaiveDate::from_ymd_opt(1997, 12,29).unwrap(),
+        birth_date: NaiveDate::from_ymd_opt(1997, 12, 29).unwrap(),
         address: vec![
             Address {
                 city: "Warsaw",
