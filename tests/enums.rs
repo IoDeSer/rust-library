@@ -4,6 +4,7 @@
 #[allow(dead_code)]
 fn enum_test() {
     use iodeser::*;
+    
     #[derive(IoDeSer, Debug)]
     #[allow(dead_code)]
     struct T1 {

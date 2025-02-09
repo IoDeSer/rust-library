@@ -1,7 +1,7 @@
 use syn::{DataEnum, Fields, FieldsNamed, FieldsUnnamed};
 use proc_macro2::{Ident, Span, TokenStream};
 use syn::{TypeGenerics, WhereClause, ImplGenerics};
-use quote::{quote};
+use quote::quote;
 
 pub(crate) type EnumType<'a> = Vec<EnumTypes<'a>>;
 
@@ -49,6 +49,9 @@ impl<'a> EnumTypes<'a> {
 
 
         quote!(
+            {
+            use std::fmt::Write;
+
             let temp = &io_input[#len..];
             *io_input = temp.to_string();
 
@@ -112,7 +115,7 @@ impl<'a> EnumTypes<'a> {
 						let mut new_object_string = String::from("|\n");
 
 						for l2 in new_object_start..new_object_end {
-							new_object_string += &format!("{}\n", lines[l2]);
+                            let _ = writeln!(new_object_string, "{}\n", lines[l2]).expect("UNHANDLED ERROR WHILE WRITE!-ING TO STRING 'new_object_string'");
 						}
 
 						new_object_string+="\n|";
@@ -125,6 +128,7 @@ impl<'a> EnumTypes<'a> {
 
             //#ender_token
             #enum_name::#n {#types_token}
+        }
         )
     }
 
@@ -175,7 +179,7 @@ impl<'a> EnumTypes<'a> {
     fn quote_from_unit(name: String, enum_name: &Ident) -> TokenStream {
         let n = syn::Ident::new(&name, Span::call_site());
         quote! {
-            #enum_name::#n => {format!("{}{}->|||", (0..tab+1).map(|_| "\t").collect::<String>(),#name)}
+            #enum_name::#n => {format!("{}{}->|||", (0..tab+1).map(|_| "\t").collect::<String>(),#name)} //ok use of format
         }
     }
 
@@ -186,7 +190,7 @@ impl<'a> EnumTypes<'a> {
         let mut variables_to_io_token = quote!();
 
         for _ in &fields.unnamed {
-            let new_field_ident = Ident::new(&format!("temp_ident{}", variable_number), Span::call_site());
+            let new_field_ident = Ident::new(&format!("temp_ident{}", variable_number), Span::call_site()); // ok use of format
             variables_token.extend(quote!(#new_field_ident ,));
 
 

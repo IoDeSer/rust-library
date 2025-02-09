@@ -3,7 +3,7 @@ use proc_macro2::{Ident, TokenStream, Literal};
 use quote::{quote, ToTokens};
 use syn::{Type, TypeGenerics, WhereClause, ImplGenerics};
 use crate::fields_renaming::parse_fields_naming;
-
+use std::fmt::Write;
 
 pub(crate) enum StructType<'a> {
     NamedFields(Vec<crate::FieldOrder<'a>>),
@@ -17,7 +17,7 @@ impl <'a> Display for StructType<'a>{
 			StructType::Tuple(t) => {
 				let mut ret = String::new();
 				for x in t{
-					ret += &format!("{:?}\n", &x.into_token_stream());
+					let _ = writeln!(ret, "{:?}", &x.into_token_stream());
 				}
 				ret
 			},
@@ -118,12 +118,16 @@ pub(crate) fn handle_struct(fields_order: StructType, struct_name: &Ident,
 
 				to_io_string_tokens_implementation.extend(
 					quote! {
-						string_output += &format!("{}{}{}->{}",
+						{
+						use std::fmt::Write;
+
+						let _ = write!(string_output, "{}{}{}->{}",
 							if #index_of > 0 { "\n" } else { "" },
 							(0..tab+1).map(|_| "\t").collect::<String>(),
 							#field_name_setter,
 							self.#field_name.to_io_string(tab + 1)
 						);
+					}
 					}
 				);
 			} // IF NAMED STRUCT
@@ -139,14 +143,15 @@ pub(crate) fn handle_struct(fields_order: StructType, struct_name: &Ident,
 				let _suffix = Literal::usize_unsuffixed(index_of);
 				to_io_string_tokens_implementation.extend(
 					quote! {
-						string_output += &format!("{}{}",
-							if #index_of > 0 {
-								format!("\n{}+\n{}", (0..tab+1).map(|_| "\t").collect::<String>(),(0..tab+1).map(|_| "\t").collect::<String>())
-							} else { // for first element
-								format!("{}", (0..tab+1).map(|_| "\t").collect::<String>())
-							},
-							self.#_suffix.to_io_string(tab+1)
-						);
+					{
+						use std::fmt::Write;
+
+						if #index_of > 0{
+							let _ = write!(string_output, "\n{}+\n{}{}",(0..tab+1).map(|_| "\t").collect::<String>(),(0..tab+1).map(|_| "\t").collect::<String>(),self.#_suffix.to_io_string(tab+1));
+						}else{
+							let _ = write!(string_output, "{}{}", (0..tab+1).map(|_| "\t").collect::<String>(),self.#_suffix.to_io_string(tab+1));
+						}
+					}
 					}
 				);
 			}
@@ -251,6 +256,8 @@ fn de_from_struct_type(is_tuple_struct:bool, _vector_field_maker:proc_macro2::To
         }
     }else {
         quote!{
+			{
+			use std::fmt::Write;
 				let lines:Vec<&str> = io_input.lines().collect();
 				let mut line_pointer = 0;
 
@@ -316,7 +323,7 @@ fn de_from_struct_type(is_tuple_struct:bool, _vector_field_maker:proc_macro2::To
 						let mut new_object_string = String::from("|\n");
 
 						for l2 in new_object_start..new_object_end {
-							new_object_string += &format!("{}\n", lines[l2]);
+							let _ = writeln!(new_object_string,"{}", lines[l2]);
 						}
 
 						new_object_string+="\n|";
@@ -327,5 +334,6 @@ fn de_from_struct_type(is_tuple_struct:bool, _vector_field_maker:proc_macro2::To
 					line_pointer=line_pointer+1;
 				}
         }
+	}
     }
 }

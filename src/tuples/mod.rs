@@ -1,4 +1,5 @@
-use crate::{IoDeSer, delete_tabulator, from_io};
+use crate::{delete_tabulator, from_io, IoDeSer};
+use std::fmt::Write;
 
 macro_rules! impl_tuple {
     ($t1:tt | $($idx:tt $t:tt),+ | $max:expr) => {
@@ -11,14 +12,15 @@ macro_rules! impl_tuple {
                 let tabs = (0..tab).map(|_| "\t").collect::<String>();
                 let more_tabs = (0..tab+1).map(|_| "\t").collect::<String>();
 
-                output += &format!("{}{}",&more_tabs,self.0.to_io_string(tab+1));
+                let _ = write!(output, "{}{}", &more_tabs,self.0.to_io_string(tab+1));
 
                 $(
-                    output += &format!("\n{}+",&more_tabs);
-                    output += &format!("\n{}{}",&more_tabs,self.$idx.to_io_string(tab+1));
+
+                    let _ = write!(output, "\n{}+",&more_tabs);
+                    let _ = write!(output, "\n{}{}",&more_tabs,self.$idx.to_io_string(tab+1));
                 )+
 
-                output += & format!("\n{}|", &tabs);
+                let _ =  write!(output, "\n{}|", &tabs);
                 output
             }
 
@@ -49,7 +51,6 @@ macro_rules! impl_tuple {
         }
     };
 }
-
 
 impl_tuple!(T1 | 1 T2 | 2);
 impl_tuple!(T1 | 1 T2, 2 T3 | 3);

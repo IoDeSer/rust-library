@@ -142,7 +142,7 @@ pub trait IoDeSer{
 ///////////////////
 ///////////////////
 ///////////////////
-
+use std::fmt::Write;
 #[inline]
 pub(crate) fn delete_tabulator(io_string: &mut String)->Result<()>{
     if !io_string.starts_with('|') || !io_string.ends_with('|') {
@@ -154,7 +154,7 @@ pub(crate) fn delete_tabulator(io_string: &mut String)->Result<()>{
 
     let mut ret = String::new();
     for line in io_string.lines().filter(|line| line.len() > 1) {
-        ret += &format!("{}\n", &line[1..]);
+        let _ = writeln!(ret,"{}", &line[1..]);
     }
 
     *io_string = ret.trim().to_string();

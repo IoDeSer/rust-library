@@ -5,7 +5,7 @@ extern crate proc_macro;
 use proc_macro2::{Ident, Literal};
 use proc_macro::TokenStream;
 use syn::{parse_macro_input, DeriveInput, Visibility, Type};
-use quote::{quote};
+use quote::quote;
 use crate::enum_type::{create_from_enum, EnumType, handle_enum};
 use crate::fields_ordering::FieldOrder;
 use crate::struct_type::{handle_struct, StructType};

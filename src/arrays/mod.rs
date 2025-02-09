@@ -121,16 +121,16 @@ impl <T: IoDeSer, const N: usize> IoDeSer for [T; N]{
 		array_init::try_array_init(|index| Ok(from_io!(objects[index].trim().to_string(), T)?))
     }
 }
-
+use std::fmt::Write;
 #[inline]
 fn iterable_ser<'a,X: IoDeSer+'a, T: Iterator<Item = &'a X>>(obj: T, tab: u8) -> String {
 	let mut array_str = String::new();
 
 	for (index, x) in obj.enumerate() {
 		if index > 0 {
-			array_str += &format!("\n{}+\n", (0..tab + 1).map(|_| "\t").collect::<String>());
+			let _ = writeln!(array_str,"\n{}+", (0..tab + 1).map(|_| "\t").collect::<String>());
 		}
-
+		
 		array_str += &(0..tab + 1).map(|_| "\t").collect::<String>();
 		array_str += &x.to_io_string(tab + 1);
 	}
