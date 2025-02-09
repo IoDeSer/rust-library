@@ -1,4 +1,5 @@
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
+#[cfg(feature = "chrono")]
 use chrono::TimeDelta;
 use iodeser::*;
 #[test]
