@@ -5,37 +5,26 @@ use std::hash::Hash;
 use crate::{delete_tabulator, from_io, IoDeSer};
 
 macro_rules! map_to_io {
-    ($s:expr, $tab: expr) => {
+    ($s:expr, $tab: expr, $buffer: ident) => {
         {
-            let mut result_io_string = String::new();
+            let _ = write!($buffer, "|\n");
             let mut first_iteration = true;
             let tabs = (0.. $tab + 1).map(|_| "\t").collect::<String>();
 
 
             for (k, v) in $s {
                 if !first_iteration{
-                    result_io_string+="\n";
-                    result_io_string+=&tabs.clone();
-                    result_io_string+="+\n";
+                    let _ = write!($buffer, "\n{}+\n", &tabs);
                 }
 
-                result_io_string+=&tabs.clone();
-                    //result_io_string+="|\n";
-
-                result_io_string+=&handle_hashmap_iteration(k,v,  $tab+1);
-                    //result_io_string+=&tabs.clone();
-                    //result_io_string+="|\n";
-
+                let _ = write!($buffer, "{}", &tabs);
+                handle_hashmap_iteration(k,v,  $tab+1, $buffer);
 
                 if first_iteration{
                     first_iteration=false;
                 }
-
-
-
             }
-
-            format!("|\n{}\n{}|", result_io_string, (0.. $tab).map(|_| "\t").collect::<String>())
+            let _ = write!($buffer, "\n{}|", (0.. $tab).map(|_| "\t").collect::<String>());
         }
     };
 }
@@ -43,8 +32,8 @@ impl <T:IoDeSer + Ord, K:IoDeSer> IoDeSer for BTreeMap<T, K>
 where T : Ord
 {
     #[inline]
-    fn to_io_string(&self, tab: u8) -> String {
-        map_to_io!(self, tab)
+    fn to_io_string(&self, tab: u8, buffer: &mut String) {
+        map_to_io!(self, tab, buffer);
     }
 
     fn from_io_string(io_input: &mut String) -> crate::Result<Self> {
@@ -70,8 +59,8 @@ impl<T: IoDeSer + Eq+ PartialEq+Hash,K: IoDeSer> IoDeSer for HashMap<T, K>
 {
 
     #[inline]
-    fn to_io_string(&self, tab: u8) -> String {
-        map_to_io!(self, tab)
+    fn to_io_string(&self, tab: u8, buffer: &mut String) {
+        map_to_io!(self, tab, buffer);
     }
 
     fn from_io_string(io_input: &mut String) ->  crate::Result<Self> {
@@ -107,16 +96,14 @@ fn handle_hashmap_from_io_iteration<T: IoDeSer, K: IoDeSer>(io_string: &mut Stri
 
     Ok((from_io!(objects[0].to_string(), T)?, from_io!(objects[1].to_string(), K)?))
 }
-
+use std::fmt::Write;
 #[inline]
-fn handle_hashmap_iteration<T: IoDeSer, V:IoDeSer>(key:&T, value: &V, tab:u8)->String{
+fn handle_hashmap_iteration<T: IoDeSer, V:IoDeSer>(key:&T, value: &V, tab:u8, buffer: &mut String){
     let tabs = (0..tab + 1).map(|_| "\t").collect::<String>();
 
-    format!("|\n{}{}\n{}+\n{}{}\n{}|",
-            /* | */
-            tabs.clone(),key.to_io_string(tab+1),
-            tabs.clone(), // +
-            tabs.clone(), value.to_io_string(tab+1),
-            (0..tab).map(|_| "\t").collect::<String>() // |
-    )
+    let _ = write!(buffer, "|\n{}",&tabs);
+    key.to_io_string(tab+1, buffer);
+    let _ = write!(buffer, "\n{}+\n{}",&tabs, tabs);
+    value.to_io_string(tab+1, buffer);
+    let _ = write!(buffer, "\n{}|",(0..tab).map(|_| "\t").collect::<String>());
 }

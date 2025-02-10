@@ -34,7 +34,7 @@ pub fn unescape(s: &str) -> String {
     result.replace("||", "|")
 }
 
-
+use std::fmt::Write;
 
 macro_rules! impl_iodeser_primitive {
     ($type:ty) => {
@@ -43,8 +43,8 @@ macro_rules! impl_iodeser_primitive {
 
 
             #[inline]
-            fn to_io_string(&self, _tab: u8) -> String {
-                format!("|{}|", self)
+            fn to_io_string(&self, _tab: u8, buffer: &mut String) {
+                let _ = write!(buffer,"|{}|", self);
             }
 
             fn from_io_string(io_input: &mut String) -> Result<Self> {
@@ -66,8 +66,8 @@ macro_rules! impl_iodeser_primitive {
 #[automatically_derived]
 impl IoDeSer for String {
     #[inline]
-    fn to_io_string(&self, _tab: u8) -> String  {
-        format!("|{}|", escape(self))
+    fn to_io_string(&self, _tab: u8, buffer: &mut String)  {
+        let _ = write!(buffer, "|{}|", escape(self));
     }
 
     fn from_io_string(io_input: &mut String) -> Result<Self>  {
@@ -82,8 +82,8 @@ impl IoDeSer for String {
 impl <'a> IoDeSer for &'a str
 {
     #[inline]
-    fn to_io_string(&self, _tab: u8) -> String  {
-        format!("|{}|", escape(&self))
+    fn to_io_string(&self, _tab: u8, buffer: &mut String)  {
+        let _ = write!(buffer, "|{}|", escape(self));
     }
 
     fn from_io_string(io_input: &mut String) -> Result<Self> {
@@ -98,8 +98,8 @@ impl <'a> IoDeSer for &'a str
 impl IoDeSer for char
 {
     #[inline]
-    fn to_io_string(&self, _tab: u8) -> String  {
-        format!("|{}|", escape(&self))
+    fn to_io_string(&self, _tab: u8, buffer: &mut String)  {
+        let _ = write!(buffer, "|{}|", escape(self));
     }
 
     fn from_io_string(io_input: &mut String) -> Result<Self> {

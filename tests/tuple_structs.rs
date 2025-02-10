@@ -3,6 +3,59 @@ use iodeser::*;
 
 
 #[test]
+fn t2222(){
+    #[derive(IoDeSer, Debug, PartialEq)] // required macro derive IoDeSer, Debug and PartialEq is not required
+    struct Person<'a> {
+        pub name: &'a str,
+        pub second_name: Option<&'a str>,
+        pub last_name: &'a str,
+        pub age: u8,
+        pub address: Vec<Address<'a>>,
+    }
+
+    #[derive(IoDeSer, Debug, PartialEq)] // required macro derive, Debug and PartialEq is not required
+    struct Address<'a> {
+        pub city: &'a str,
+        pub number: AddressNumberType<'a>,
+        pub street: &'a str,
+    }
+
+    #[derive(IoDeSer, Debug, PartialEq)] // required macro derive, Debug and PartialEq is not required
+    enum AddressNumberType<'a>{
+        Numeric(u16),
+        String(&'a str)
+    }
+
+    let person = Person {
+        name: "John",
+        second_name: None,
+        last_name: "Kowalski",
+        age: 21,
+        address: vec![
+            Address {
+                city: "Warsaw",
+                number: AddressNumberType::Numeric(65),
+                street: "Tęczowa",
+            },
+            Address {
+                city: "Hamburg",
+                number: AddressNumberType::String("220a"),
+                street: "Strasse",
+            },
+        ],
+    };
+
+    let io_serialization: String = to_io!(&person); // serialization
+    println!("{}", &io_serialization);
+
+    let person_deserialization: Person = from_io!(io_serialization, Person).unwrap(); // deserialization
+    println!("{:?}", &person_deserialization);
+
+    assert_eq!(person, person_deserialization);
+    
+}
+
+#[test]
 fn testing(){
     #[derive(IoDeSer, Debug)]
     struct Test<'a>{

@@ -121,7 +121,7 @@ pub trait IoDeSer{
     ///
     /// # Arguments
     ///  * `tab` - Starting number of tabulators in String. At the beginning should be equal to 0.
-    fn to_io_string(&self, tab: u8)->String;
+    fn to_io_string(&self, tab: u8, buffer: &mut String);
 
     /// Deserializes .io formatted String into Self.
     ///
@@ -142,7 +142,6 @@ pub trait IoDeSer{
 ///////////////////
 ///////////////////
 ///////////////////
-use std::fmt::Write;
 #[inline]
 pub(crate) fn delete_tabulator(io_string: &mut String)->Result<()>{
     if !io_string.starts_with('|') || !io_string.ends_with('|') {
@@ -152,12 +151,26 @@ pub(crate) fn delete_tabulator(io_string: &mut String)->Result<()>{
         }.into());
     }
 
-    let mut ret = String::new();
-    for line in io_string.lines().filter(|line| line.len() > 1) {
-        let _ = writeln!(ret,"{}", &line[1..]);
-    }
+    // Use retain, to remove first characters (tabulator) after each newline (\n)
+    let mut previous_was_newline = true;
+    io_string.retain(|c| {
 
-    *io_string = ret.trim().to_string();
+        if previous_was_newline{
+            previous_was_newline = false;
+            return false;
+        }
+
+        if c=='\n'{
+            previous_was_newline = true;
+            return true;
+        }
+
+        true
+    });
+
+    // Remove the first and last vertical bars
+    io_string.remove(0); // Remove the first '|'
+    io_string.pop(); // Remove the last '|'
     Ok(())
 }
 
@@ -210,8 +223,10 @@ macro_rules! from_io{
 macro_rules! to_io{
     ($obj: expr)=>{
         {
-        $obj.to_io_string(0)
-            }
+            let mut buffer = String::new();
+            $obj.to_io_string(0, &mut buffer);
+            buffer
+        }
     };
 }
 

@@ -179,7 +179,9 @@ impl<'a> EnumTypes<'a> {
     fn quote_from_unit(name: String, enum_name: &Ident) -> TokenStream {
         let n = syn::Ident::new(&name, Span::call_site());
         quote! {
-            #enum_name::#n => {format!("{}{}->|||", (0..tab+1).map(|_| "\t").collect::<String>(),#name)} //ok use of format
+            #enum_name::#n => {
+                let _ = write!(buffer,"{}{}->|||", (0..tab+1).map(|_| "\t").collect::<String>(),#name);
+            } //ok use of format
         }
     }
 
@@ -195,9 +197,24 @@ impl<'a> EnumTypes<'a> {
 
 
             if variable_number == 0 {
-                variables_to_io_token.extend(quote!(&(0..tab+2).map(|_| "\t").collect::<String>() + &#new_field_ident.to_io_string(tab+2)));
+                variables_to_io_token.extend(quote!(
+                    {
+                        let mut buffer2 = (0..tab+2).map(|_| "\t").collect::<String>();// todo, remove buffer2, and let variables_to_io_token assign to buffer(1)
+
+                        #new_field_ident.to_io_string(tab+2,&mut  buffer2);
+                        buffer2
+                    }
+                ));
             } else {
-                variables_to_io_token.extend(quote!(+"\n"+&(0..tab+2).map(|_| "\t").collect::<String>()+"+\n"+&(0..tab+2).map(|_| "\t").collect::<String>()+ &#new_field_ident.to_io_string(tab+2)));
+                variables_to_io_token.extend(quote!(
+                    +"\n"+&(0..tab+2).map(|_| "\t").collect::<String>()+"+\n"+&(0..tab+2).map(|_| "\t").collect::<String>()+
+                    {
+                        let mut buffer2 = String::new();// todo, remove buffer2, and let variables_to_io_token assign to buffer(1)
+
+                        #new_field_ident.to_io_string(tab+2,&mut buffer2);
+                        &buffer2.clone()
+                    }
+                ));
             }
 
             variable_number += 1;
@@ -205,15 +222,18 @@ impl<'a> EnumTypes<'a> {
 
 
         quote! {
-            #enum_name::#n( #variables_token ) => { (0..tab+1).map(|_| "\t").collect::<String>()+#name + "->|\n"+
-                    #variables_to_io_token+"\n"+&(0..tab+1).map(|_| "\t").collect::<String>()+"|"}
+            #enum_name::#n( #variables_token ) => { 
+
+                let _ = write!(buffer, "{}{}->|\n{}\n{}|", (0..tab+1).map(|_| "\t").collect::<String>(), #name, #variables_to_io_token ,&(0..tab+1).map(|_| "\t").collect::<String>());
         }
+    }
+
     }
 
     fn quote_from_named(name: String, fields: &FieldsNamed, enum_name: &Ident) -> TokenStream {
         let mut tokens_names_impl = quote!();
         let n = syn::Ident::new(&name, Span::call_site());
-        let mut tokens = quote!("".to_string()+);
+        let mut tokens = quote!();
 
         let mut iterator = 0;
 
@@ -224,7 +244,7 @@ impl<'a> EnumTypes<'a> {
             if iterator > 0 {
                 tokens.extend(
                     quote! {
-                        +"\n"+&_tab_more+
+                        let _ = write!(buffer, "\n{}", &_tab_more);
                     }
                 );
 
@@ -236,7 +256,8 @@ impl<'a> EnumTypes<'a> {
 
             tokens.extend(
                 quote! {
-                    &#n+"->"+&#n_ident.to_io_string(tab+2)
+                    let _ = write!(buffer, "{}->", &#n);
+                    #n_ident.to_io_string(tab+2,buffer);
                 }
             );
 
@@ -245,9 +266,11 @@ impl<'a> EnumTypes<'a> {
 
         quote! {
             #enum_name::#n{ #tokens_names_impl } => {
-                let _tab = (0..tab+1).map(|_| "\t").collect::<String>();
-                let _tab_more = (0..tab+2).map(|_| "\t").collect::<String>();
-                format!("{}{}->|\n{}{}\n{}|", &_tab, #name, &_tab_more, #tokens,&_tab)
+                    let _tab = (0..tab+1).map(|_| "\t").collect::<String>();
+                    let _tab_more = (0..tab+2).map(|_| "\t").collect::<String>();
+                    let _ = write!(buffer,"{}{}->|\n{}", &_tab, #name, &_tab_more);
+                    #tokens
+                    let _ = write!(buffer, "\n{}|", &_tab);
             }
         }
     }
@@ -369,13 +392,15 @@ fn to_io_token_implementation(enums_fields: &EnumType, enum_name: &Ident) -> Tok
         .collect();
 
     quote!(
-        fn to_io_string(&self, tab: u8)->String{
-            format!("|\n{}\n{}|",
+        fn to_io_string(&self, tab: u8, buffer: &mut String){
+            {
+                use std::fmt::Write;
+                let _ = write!(buffer, "|\n");
                 match &self {
                     #enum_match_statement
-                },
-                (0..tab).map(|_| "\t").collect::<String>()
-            )
+                };
+                let _ = write!(buffer, "\n{}|", (0..tab).map(|_| "\t").collect::<String>());
+            }
         }
     )
 }

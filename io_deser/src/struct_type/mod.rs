@@ -121,12 +121,12 @@ pub(crate) fn handle_struct(fields_order: StructType, struct_name: &Ident,
 						{
 						use std::fmt::Write;
 
-						let _ = write!(string_output, "{}{}{}->{}",
+						let _ = write!(buffer, "{}{}{}->",
 							if #index_of > 0 { "\n" } else { "" },
 							(0..tab+1).map(|_| "\t").collect::<String>(),
-							#field_name_setter,
-							self.#field_name.to_io_string(tab + 1)
+							#field_name_setter,					
 						);
+						self.#field_name.to_io_string(tab + 1, buffer);
 					}
 					}
 				);
@@ -147,10 +147,11 @@ pub(crate) fn handle_struct(fields_order: StructType, struct_name: &Ident,
 						use std::fmt::Write;
 
 						if #index_of > 0{
-							let _ = write!(string_output, "\n{}+\n{}{}",(0..tab+1).map(|_| "\t").collect::<String>(),(0..tab+1).map(|_| "\t").collect::<String>(),self.#_suffix.to_io_string(tab+1));
+							let _ = write!(buffer, "\n{}+\n{}",(0..tab+1).map(|_| "\t").collect::<String>(),(0..tab+1).map(|_| "\t").collect::<String>());
 						}else{
-							let _ = write!(string_output, "{}{}", (0..tab+1).map(|_| "\t").collect::<String>(),self.#_suffix.to_io_string(tab+1));
+							let _ = write!(buffer, "{}", (0..tab+1).map(|_| "\t").collect::<String>());
 						}
+						self.#_suffix.to_io_string(tab+1, buffer);
 					}
 					}
 				);
@@ -199,10 +200,13 @@ fn implement_iodeser_trait(struct_name: &Ident, to_io_string_tokens_implementati
         impl #impl_generics IoDeSer for #struct_name #ty_generics #where_clause {
 
 
-			fn to_io_string(&self, tab: u8)->String{
-				let mut string_output = String::from("|\n");
-                #to_io_string_tokens_implementation
-				format!("{}\n{}|",string_output, (0..tab).map(|_| "\t").collect::<String>())
+			fn to_io_string(&self, tab: u8, buffer: &mut String){
+				{
+					use std::fmt::Write;
+					let _ = write!(buffer, "|\n");
+					#to_io_string_tokens_implementation
+					let _ = write!(buffer,"\n{}|", (0..tab).map(|_| "\t").collect::<String>()); // todo, apply format to buffer
+				}
             }
 
 

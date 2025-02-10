@@ -7,21 +7,21 @@ macro_rules! impl_tuple {
         impl <$t1:IoDeSer,$($t:IoDeSer,)+> IoDeSer for ($t1,$($t,)+){
 
 
-            fn to_io_string(&self, tab: u8) -> String {
-                let mut output = "|\n".to_string();
+            fn to_io_string(&self, tab: u8, buffer: &mut String) {
+                let _ = write!(buffer, "|\n");
                 let tabs = (0..tab).map(|_| "\t").collect::<String>();
                 let more_tabs = (0..tab+1).map(|_| "\t").collect::<String>();
 
-                let _ = write!(output, "{}{}", &more_tabs,self.0.to_io_string(tab+1));
+                let _ = write!(buffer, "{}", &more_tabs);
+                self.0.to_io_string(tab+1, buffer);
 
                 $(
 
-                    let _ = write!(output, "\n{}+",&more_tabs);
-                    let _ = write!(output, "\n{}{}",&more_tabs,self.$idx.to_io_string(tab+1));
+                    let _ = write!(buffer, "\n{}+\n{}",&more_tabs, &more_tabs);
+                    self.$idx.to_io_string(tab+1, buffer);
                 )+
 
-                let _ =  write!(output, "\n{}|", &tabs);
-                output
+                let _ =  write!(buffer, "\n{}|", &tabs); // todo
             }
 
             fn from_io_string(io_input: &mut String) -> crate::Result<Self> {

@@ -1,5 +1,16 @@
 #![allow(dead_code)]
 
+
+#[test]
+fn imports_only(){
+    use iodeser::*;
+    #[derive(IoDeSer, Debug)]
+    enum Testowanie {
+        X,
+    }
+
+}
+
 #[test]
 #[allow(dead_code)]
 fn enum_test() {
