@@ -7,6 +7,11 @@ use crate::{delete_tabulator, from_io, IoDeSer};
 macro_rules! map_to_io {
     ($s:expr, $tab: expr, $buffer: ident) => {
         {
+            if $s.is_empty(){
+                let _ = write!($buffer, "||");
+                return;
+            }
+
             let _ = write!($buffer, "|\n");
             let mut first_iteration = true;
             let tabs = (0.. $tab + 1).map(|_| "\t").collect::<String>();

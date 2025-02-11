@@ -193,7 +193,7 @@ impl IoDeSer for chrono::TimeDelta {
 #[cfg(feature = "chrono")]
 #[automatically_derived]
 impl IoDeSer for chrono::NaiveTime {
-    fn to_io_string(&self, _tab: u8, buffer: &mut String) -> String {
+    fn to_io_string(&self, _tab: u8, buffer: &mut String) {
         let _ = write!(buffer, "|{}|", self.format("1970-01-01T%H:%M:%S%.f+00:00"));
     }
 

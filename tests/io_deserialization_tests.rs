@@ -66,3 +66,6 @@ compare_from!(&BTreeMap::from([
 compare_from!(&LinkedList::from([1,5,4,3,76]), LinkedList<i32>, linked_list);
 compare_from!(&VecDeque::from([1,5,4,3,76]), VecDeque<i32>, vec_queue);
 compare_from!(&HashSet::from([1,5,4,3,76]), HashSet<i32>, hash_set);
+compare_from!(&HashSet::<i32>::new(), HashSet<i32>, hash_set_empty);
+
+compare_from!(&BTreeMap::<i32, char>::new(), BTreeMap<i32, char>, btreemap_empty);

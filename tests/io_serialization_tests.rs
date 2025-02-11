@@ -1,6 +1,6 @@
 mod compare;
 
-use std::collections::{HashMap, LinkedList, VecDeque};
+use std::collections::{BTreeMap, BTreeSet, HashMap, LinkedList, VecDeque};
 use iodeser::*;
 
 #[derive(IoDeSer, Debug, Default)]
@@ -152,16 +152,16 @@ compare_to!(&HashMap::from([(345435735, Test2{char_eg:'i'})]),
 |", hashmap_class);
 
 compare_to!(&[0i32;0],
-"|
-
-|", array_empty);
+"||", array_empty);
 
 compare_to!(&Vec::<char>::new(),
-"|
-
-|", vec_empty);
+"||", vec_empty);
 
 compare_to!(&HashMap::<char, i32>::new(),
-"|
+"||", hashmap_empty);
 
-|", hashmap_empty);
+compare_to!(&BTreeMap::<char, i32>::new(),
+"||", btreemap_empty);
+
+compare_to!(&BTreeSet::<char>::new(),
+"||", btreeset_empty);
