@@ -90,8 +90,8 @@ pub(crate) fn handle_struct(fields_order: StructType, struct_name: &Ident,
 		StructType::NamedFields { publics:_, privates:_ } => false,
 		StructType::Tuple(f) => {
             // lenght of the elements with property is_public == false
-            let private_len = f.iter().filter(|x| !x.is_public).count();
-			_vector_field_maker = quote! {#private_len};
+            let public_len = f.iter().filter(|x| x.is_public).count();
+			_vector_field_maker = quote! {#public_len};
 			true
 		}
 	};
@@ -277,7 +277,6 @@ fn de_from_struct_type(is_tuple_struct:bool, _vector_field_maker:proc_macro2::To
                     }
                 }
 
-            
 			if &#_vector_field_maker != &objects.len(){
                     return Err(iodeser::Error::length_error(objects.len(),#_vector_field_maker).into());
 			}

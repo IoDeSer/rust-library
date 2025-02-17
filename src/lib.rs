@@ -98,6 +98,8 @@ mod times;
 
 pub use errors::Error;
 pub use io_deser::*;
+#[cfg(feature = "chrono")]
+pub use chrono;
 
 
 /// Alias for a `Result` with the error type [`errors::Error`]

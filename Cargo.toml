@@ -12,7 +12,7 @@ license="MIT"
 [lib]
 
 [dependencies]
-io_deser = { version = "0.5.3" }# path="./io_deser",
+io_deser = {path="./io_deser", version = "0.5.3" }# 
 paste = "1.0.15"
 array-init = "2.1.0"
 chrono = {version = "0.4.31", optional = true, features = ["serde"]}
