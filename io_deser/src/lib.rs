@@ -4,7 +4,8 @@ extern crate proc_macro;
 
 use proc_macro2::{Ident, Literal};
 use proc_macro::TokenStream;
-use syn::{parse_macro_input, DeriveInput, Visibility, Type};
+use struct_type::TupleType;
+use syn::{parse_macro_input, DeriveInput, Visibility};
 use quote::quote;
 use crate::enum_type::{create_from_enum, EnumType, handle_enum};
 use crate::fields_ordering::FieldOrder;
@@ -35,7 +36,18 @@ fn create_fields_from_data(input: &DeriveInput) -> ReturnType {
                 })
                 .collect::<Vec<_>>();
             fields_order.sort();
-            ReturnType::Struct(StructType::NamedFields(fields_order))
+
+            let private_fields = fields.named
+                .iter()
+                .filter_map(|field| {
+                    if let Visibility::Public(_) = field.vis {
+                        None
+                    } else {
+                        Some(field)
+                    }
+                })
+                .collect::<Vec<_>>();
+            ReturnType::Struct(StructType::NamedFields{publics: fields_order, privates: private_fields})
         } else if let syn::Fields::Unnamed(ref unnamed) = data.fields {
             ReturnType::Struct(
                 StructType::Tuple(
@@ -43,13 +55,14 @@ fn create_fields_from_data(input: &DeriveInput) -> ReturnType {
                         .iter()
                         .filter_map(|f| {
                             if let Visibility::Public(_) = f.vis {
-                                Some(&f.ty)
+                                Some(TupleType{object_type: &f.ty, is_public: true})
                             } else {
-                                None
+                                Some(TupleType{object_type: &f.ty, is_public: false})
                             }
                         })
-                        .collect::<Vec<&Type>>()
+                        .collect::<Vec<TupleType>>()
                 )
+                
             )
         } else {
             panic!("This data type is not supported by IoDeSer attribute")

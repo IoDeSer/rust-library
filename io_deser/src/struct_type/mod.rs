@@ -1,23 +1,28 @@
 use std::fmt::{Display, Formatter};
 use proc_macro2::{Ident, TokenStream, Literal};
 use quote::{quote, ToTokens};
-use syn::{Type, TypeGenerics, WhereClause, ImplGenerics};
+use syn::{Field, ImplGenerics, Type, TypeGenerics, WhereClause};
 use crate::fields_renaming::parse_fields_naming;
 use std::fmt::Write;
 
+pub(crate) struct TupleType<'a>{
+    pub object_type: &'a Type,
+    pub is_public: bool
+}
+
 pub(crate) enum StructType<'a> {
-    NamedFields(Vec<crate::FieldOrder<'a>>),
-    Tuple(Vec<&'a Type>),
+    NamedFields{publics: Vec<crate::FieldOrder<'a>>, privates: Vec<&'a Field>},
+    Tuple(Vec<TupleType<'a>>),
 }
 
 impl <'a> Display for StructType<'a>{
 	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
 		write!(f, "{}", match self{
-			StructType::NamedFields(f) => format!("{:?}", f),
-			StructType::Tuple(t) => {
+			StructType::NamedFields { publics, privates } => format!("{:?}\t{}", publics,privates.len()),
+			StructType::Tuple(f) => {
 				let mut ret = String::new();
-				for x in t{
-					let _ = writeln!(ret, "{:?}", &x.into_token_stream());
+				for x in f{
+					let _ = writeln!(ret, "{:?}", &x.object_type.into_token_stream());
 				}
 				ret
 			},
@@ -29,14 +34,14 @@ impl <'a> Display for StructType<'a>{
 
 pub(crate) enum IterType<'a> {
     Field(crate::FieldOrder<'a>),
-    Type(&'a Type),
+    Type(TupleType<'a>),
 }
 
 impl <'a> Display for IterType<'a>{
 	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
 		write!(f, "{}", match self{
 			IterType::Field(f) => format!("{:?}", f),
-			IterType::Type(t) => format!("{:?}", t.into_token_stream())
+			IterType::Type(t) => format!("{:?}", t.object_type.into_token_stream())
 		})
 	}
 }
@@ -46,18 +51,18 @@ impl<'a> Iterator for StructType<'a> {
 
     fn next(&mut self) -> Option<Self::Item> {
         match self {
-            StructType::NamedFields(f) =>{
-				if f.is_empty(){
+            StructType::NamedFields { publics, privates: _ } =>{
+				if publics.is_empty(){
 					return None;
 				}
 
-				Some(IterType::Field(f.remove(0)))
+				Some(IterType::Field(publics.remove(0)))
 			},
-            StructType::Tuple(t) => {
-				if t.is_empty(){
+            StructType::Tuple(f) => {
+				if f.is_empty(){
 					return None;
 				}
-				Some(IterType::Type(t.remove(0)))
+				Some(IterType::Type(f.remove(0)))
 			},
 		}
     }
@@ -67,8 +72,8 @@ impl<'a> Iterator for StructType<'a> {
             Self: Sized,
     {
         match self {
-            StructType::NamedFields(f) => f.len(),
-            StructType::Tuple(t) => t.len(),
+            StructType::NamedFields { publics, privates:_ } => publics.len(),
+            StructType::Tuple(f)=> f.len(),
         }
     }
 }
@@ -82,15 +87,31 @@ pub(crate) fn handle_struct(fields_order: StructType, struct_name: &Ident,
 	let mut index_of = 0;
 
 	let is_tuple_struct = match &fields_order {
-		StructType::NamedFields(_) => false,
-		StructType::Tuple(t) => {
-			let l = t.len();
-			_vector_field_maker = quote! {#l};
+		StructType::NamedFields { publics:_, privates:_ } => false,
+		StructType::Tuple(f) => {
+            // lenght of the elements with property is_public == false
+            let private_len = f.iter().filter(|x| !x.is_public).count();
+			_vector_field_maker = quote! {#private_len};
 			true
 		}
 	};
 
 
+
+    // create deserializer for private fields (using $type::default())
+    // only if fields_order is NamedFields
+    if let StructType::NamedFields { publics:_, privates } = &fields_order {
+        for private_field in privates{
+            let field_type = &private_field.ty;
+			let field_name = private_field.ident.as_ref();
+
+            _struct_return_definition.extend(quote! {
+                #field_name: #field_type::default(),
+            });
+        }
+    } 
+
+    // public fields
 	for field_type in fields_order {
 		match field_type {
 
@@ -134,27 +155,33 @@ pub(crate) fn handle_struct(fields_order: StructType, struct_name: &Ident,
 
 			// IF STRUCT TUPLE
 			IterType::Type(t) => {
-				let field_type = t;
+				let field_type = t.object_type;
 
-				_struct_return_definition.extend(quote! {
-					from_io!(variable_and_io_str_value[#index_of as usize], #field_type)? ,
-				});
+                if t.is_public{
+                    _struct_return_definition.extend(quote! {
+                        from_io!(variable_and_io_str_value[#index_of as usize], #field_type)? ,
+                    });
 
-				let _suffix = Literal::usize_unsuffixed(index_of);
-				to_io_string_tokens_implementation.extend(
-					quote! {
-					{
-						use std::fmt::Write;
+                    let _suffix = Literal::usize_unsuffixed(index_of);
+                    to_io_string_tokens_implementation.extend(
+                        quote! {
+                        {
+                            use std::fmt::Write;
 
-						if #index_of > 0{
-							let _ = write!(buffer, "\n{}+\n{}",(0..tab+1).map(|_| "\t").collect::<String>(),(0..tab+1).map(|_| "\t").collect::<String>());
-						}else{
-							let _ = write!(buffer, "{}", (0..tab+1).map(|_| "\t").collect::<String>());
-						}
-						self.#_suffix.to_io_string(tab+1, buffer);
-					}
-					}
-				);
+                            if #index_of > 0{
+                                let _ = write!(buffer, "\n{}+\n{}",(0..tab+1).map(|_| "\t").collect::<String>(),(0..tab+1).map(|_| "\t").collect::<String>());
+                            }else{
+                                let _ = write!(buffer, "{}", (0..tab+1).map(|_| "\t").collect::<String>());
+                            }
+                            self.#_suffix.to_io_string(tab+1, buffer);
+                        }
+                        }
+                    );
+                }else{
+                    _struct_return_definition.extend(quote! {
+                        #field_type::default(),
+                    });
+                }
 			}
 		}
 
@@ -162,8 +189,8 @@ pub(crate) fn handle_struct(fields_order: StructType, struct_name: &Ident,
 		index_of = index_of + 1;
 	}
 
-	// final token initialization of vector with field names / optional renamings
 
+	// final token initialization of vector with field names / optional renamings
 
 	_struct_return_definition = match is_tuple_struct {
 		false => {
@@ -250,6 +277,7 @@ fn de_from_struct_type(is_tuple_struct:bool, _vector_field_maker:proc_macro2::To
                     }
                 }
 
+            
 			if &#_vector_field_maker != &objects.len(){
                     return Err(iodeser::Error::length_error(objects.len(),#_vector_field_maker).into());
 			}
