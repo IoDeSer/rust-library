@@ -21,26 +21,18 @@ impl<'a> EnumTypes<'a> {
 
         let mut fields_token_creator = quote!();
         let mut types_token = quote!();
-       //let mut ender_token = quote!();
 
         let mut iterator:usize = 0;
         for field in &fields.named {
-            if iterator>0{
-                fields_token_creator.extend(quote!(,));
-                types_token.extend(quote!(,));
-            }
             let field_name = field.ident.clone().unwrap().to_string();
-            fields_token_creator.extend(quote!(#field_name));
+            fields_token_creator.extend(quote!(#field_name,));
 
             let n2 = field.ident.clone().unwrap();
             let typ = field.ty.clone();
             types_token.extend(quote!{
-                #n2: from_io!(variable_and_io_str_value[#iterator], #typ)?
+                #n2: <#typ>::from_io_string(&mut variable_and_io_str_value[#iterator])?,
             });
 
-/*            ender_token.extend(quote!(
-               println!("{}\t vs {:?}", &variable_and_io_str_value[#iterator], stringify!(#typ));
-            ));*/
 
             iterator+=1;
         }
@@ -140,12 +132,9 @@ impl<'a> EnumTypes<'a> {
         let mut types_token = quote!();
         let mut iterator:usize = 0;
         for typ in types {
-            if iterator>0{
-                types_token.extend(quote!(,));
-            }
 
             types_token.extend(quote!{
-                from_io!(objects[#iterator].to_string(), #typ)?
+                <#typ>::from_io_string(&mut objects[#iterator].to_string())?, 
             });
 
             iterator+=1;

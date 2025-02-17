@@ -133,7 +133,7 @@ pub(crate) fn handle_struct(fields_order: StructType, struct_name: &Ident,
 
 				// field initialization inside struct definition with: its_name: deserialized_io_string
 				_struct_return_definition.extend(quote! {
-					#field_name: from_io!(variable_and_io_str_value[#index_of as usize], #field_type)? ,
+					#field_name: <#field_type>::from_io_string(&mut variable_and_io_str_value[#index_of as usize])?,
 				});
 
 
@@ -159,7 +159,7 @@ pub(crate) fn handle_struct(fields_order: StructType, struct_name: &Ident,
 
                 if t.is_public{
                     _struct_return_definition.extend(quote! {
-                        from_io!(variable_and_io_str_value[#index_of as usize], #field_type)? ,
+						<#field_type>::from_io_string(&mut variable_and_io_str_value[#index_of as usize])?, 
                     });
 
                     let _suffix = Literal::usize_unsuffixed(index_of);
