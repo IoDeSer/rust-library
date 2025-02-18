@@ -5,7 +5,7 @@ use iodeser::*;
 fn main() {
     // initialize tuple
     let tuple = (-525, 'H', "Str", vec![1, 3, 2, 6, 10], "String".to_string());
-
+    
     //serialization
     let io_string = to_io!(&tuple);
     println!("{}", io_string);
