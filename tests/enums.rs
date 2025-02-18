@@ -63,18 +63,13 @@ fn enum_test() {
 
 }
 
-#[cfg(feature = "serde")]
-#[cfg(feature = "serde_json")]
 #[cfg(feature = "chrono")]
 #[test]
-fn timing_Tests(){
-    use serde::{Serialize, Deserialize};
-    use serde_json;
+fn timing_tests(){
     use iodeser::*;
-    use std::time::Instant;
     use chrono::NaiveDate;
 
-    #[derive(Serialize, Deserialize,IoDeSer, Debug, PartialEq)] // required macro derive IoDeSer, Debug and PartialEq is not required
+    #[derive(IoDeSer, Debug, PartialEq)] // required macro derive IoDeSer, Debug and PartialEq is not required
     struct Person<'a> {
         #[io_name("Name")]      // optional renaming
         pub name: &'a str,
@@ -90,7 +85,7 @@ fn timing_Tests(){
         pub address: Vec<Address<'a>>,
     }
 
-    #[derive(Serialize, Deserialize,IoDeSer, Debug, PartialEq)] // required macro derive, Debug and PartialEq is not required
+    #[derive(IoDeSer, Debug, PartialEq)] // required macro derive, Debug and PartialEq is not required
     struct Address<'a> {
         #[io_order(3)]          // optional ordering using integer
         pub city: &'a str,
@@ -100,13 +95,13 @@ fn timing_Tests(){
         pub street: &'a str,
     }
 
-    #[derive(Serialize, Deserialize, IoDeSer, Debug, PartialEq)] // required macro derive, Debug and PartialEq is not required
+    #[derive(IoDeSer, Debug, PartialEq)] // required macro derive, Debug and PartialEq is not required
     enum AddressNumberType<'a> {
         Numeric(u16),
         String(&'a str),
     }
 
-    let person = Person {
+    let _ = Person {
         name: "John",
         second_name: None,
         last_name: "Kowalski",
@@ -124,22 +119,4 @@ fn timing_Tests(){
             },
         ],
     };
-
-    let start = Instant::now();
-    let json = serde_json::to_string(&person).expect("Serialization failed");
-    println!("Serialized JSON:\t{:?}", start.elapsed());
-
-    let start = Instant::now();
-    let dejson:Person = serde_json::from_str(&json).unwrap();
-    println!("{:?}\n\n", start.elapsed());
-
-    let start = Instant::now();
-    let io = to_io!(&person);
-    println!("Serialized io:\t{:?}", start.elapsed());
-
-
-
-    let start = Instant::now();
-    let deio:Person = from_io!(&io, Person).unwrap();
-    println!("{:?}", start.elapsed());
 }

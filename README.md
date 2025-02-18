@@ -29,7 +29,7 @@ Full list of supported types can be found in this [crate's documentation](https:
 
 See [example](#example-usage) below for usage of those capabilities.
 
-### Example usage
+## Example usage
 ```rust
 use iodeser::*; // required import
 
@@ -125,3 +125,5 @@ Output:
 Person { name: "John", second_name: None, last_name: "Kowalski", age: 21, address: [Address { city: "Warsaw", number: Numeric(65), street: "Tęczowa" }, Address { city: "Hamburg", number: String("220a"), street: "Strasse" }] }
 */
 ```
+
+See more examples on GitHub in [examples](https://github.com/IoDeSer/rust-library/tree/main/examples).
