@@ -2,6 +2,7 @@ use syn::{Attribute, Expr, Field};
 use std::cmp::Ordering;
 use proc_macro2::Ident;
 use std::fmt::{Debug, Formatter};
+use quote::ToTokens;
 
 pub(crate) struct FieldOrder<'a>{
     pub field:&'a Field,
@@ -41,9 +42,9 @@ impl <'a> FieldOrder<'a>{
         let field_name_str = field.ident.as_ref().unwrap().to_string();
 
         for attribute in &field.attrs{
-            match attribute.path.get_ident().unwrap().to_string().as_str(){
+            match attribute.path().get_ident().unwrap().to_string().as_str(){
                 "io_order"=>{
-                    if attribute.tokens.is_empty(){
+                    if attribute.to_token_stream().is_empty(){
                         panic!("The 'io_order' macro in the struct '{}' for the field '{}' expects exactly one Integer argument, but none were provided.", struct_name, field_name_str)
                     }
 
@@ -64,7 +65,7 @@ fn try_from_ordering_integer(attr: &Attribute, struct_name: &Ident,field_name_st
         .expect(&format!("The 'io_order' macro in the struct '{}' for the field '{}' expected exactly one Integer argument (check: '{}'), but more were provided or in the wrong format.",
                          struct_name.to_string(),
                          field_name_str,
-                         &attr.tokens));
+                         &attr.to_token_stream()));
 
     // Ewaluacja Expr jako Integer
     match field_order_expression {
@@ -73,11 +74,11 @@ fn try_from_ordering_integer(attr: &Attribute, struct_name: &Ident,field_name_st
                 lit_int.base10_parse::<i16>()
                     .expect(&format!("Failed to parse the integer value of 'io_order' macro for struct '{}' and field '{}'", struct_name, field_name_str))
             } else {
-                panic!("The 'io_order' macro in the struct '{}' for the field '{}' expects an Integer argument, but a different literal type was provided (check: {}).", struct_name, field_name_str, &attr.tokens);
+                panic!("The 'io_order' macro in the struct '{}' for the field '{}' expects an Integer argument, but a different literal type was provided (check: {}).", struct_name, field_name_str, &attr.to_token_stream());
             }
         }
         _ => {
-            panic!("The 'io_order' macro in the struct '{}' for the field '{}' expects an Integer argument, but a different expression type was provided (check: {}).", struct_name, field_name_str, &attr.tokens);
+            panic!("The 'io_order' macro in the struct '{}' for the field '{}' expects an Integer argument, but a different expression type was provided (check: {}).", struct_name, field_name_str, &attr.to_token_stream());
         }
     }
 }
