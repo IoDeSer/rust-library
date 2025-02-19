@@ -1,5 +1,10 @@
-# About
+# Introduction
 Repository stores code for Rust library that allows to read from and write to .io file format.
+
+### About
+.io file is a text format that contains serialized object. Each object is stored between two vertical bars *|X|* in one line for primitive object or more, for iterables and structures. It is build to be cross-platform, language-independent and human-readable.
+
+You can read more about .io de/serialization file format goal and mission [here](https://github.com/IoDeSer).
 
 ### Functions and plans
 The current status of both serialization and deserialization:
@@ -8,28 +13,66 @@ The current status of both serialization and deserialization:
 - [X] Arrays
 - [X] Vectors
 - [X] Hashmaps
-- [X] Structs (Named{} and tuple())
-- [X] Generics
+- [X] Structs (Named{} and Tuple())
+- [X] Generic objects (<T>)
 - [X] Tuples
 - [X] &str type
 - [X] Slices
 - [X] Option
 - [X] Result
 - [X] Combinations of all above
-- [X] Enums (Unit, Unnamed, Named)
+- [X] Enums (Unit, Unnamed(), Named{})
+- [X] Reference types (&T)
 - [ ] Unit type `()`
 
 Full list of supported types can be found in this [crate's documentation](https://docs.rs/iodeser/latest/iodeser/trait.IoDeSer.html#foreign-impls).
 
-### Capabilities
+## Capabilities
  - Serialization of [supported types](#functions-and-plans) using macro **to_io!()** using objects reference,
- - Deserialization of [supported types](#functions-and-plans) using macro **from_io!()** using .io formatted String and wanted objects type,
+ - Deserialization of [supported types](#functions-and-plans) using macro **from_io!()** using .io formatted String and objects type,
  - Renaming structs fields in and from .io formatted String using **#[io_name()]** helper macro using String literal as argument.
  - Ordering structs fields in and from .io formatted String using **#[io_order()]** helper macro using either FIRST and LAST keywords or an i16 Integer.
 
-See [example](#example-usage) below for usage of those capabilities.
+See [example](#example-usage) how these capabilities can be utilized.
 
-## Example usage
+### How to use
+First, you need to import iodeser crate. Inside of **Cargo.toml** add:
+```toml
+[dependencies]
+# ...
+iodeser = "0.5.3"
+```
+
+Next, you need to import crate in a code:
+```rust
+use iodeser::*;
+```
+
+To serialize or deserialize ready objects use [macros](#capabilities). Remember about passing desired objects type to deserialization macro.
+```rust
+// serialize
+let number: i32 = 37;
+let serialized_number = to_io!(number);
+
+//deserialize
+let deserialized_number = from_io!(serialized_number, i32).unwrap();
+
+assert_eq(number, deserialized_number);
+```
+
+To de/serialize created structs or enums you need to use *derive* trait *IoDeSer*:
+```rust
+#[derive(IoDeSer)]
+struct Animal{
+    pub name: String
+}
+
+let animal = Animal(name: "Cat".into());
+let serialized_animal = to_io!(animal);
+let deserialized_animal = from_io!(serialized_animal, Animal);
+```
+
+### Example usage
 ```rust
 use iodeser::*; // required import
 
@@ -127,3 +170,18 @@ Person { name: "John", second_name: None, last_name: "Kowalski", age: 21, addres
 ```
 
 See more examples on GitHub in [examples](https://github.com/IoDeSer/rust-library/tree/main/examples).
+
+## Features
+Optional features for now only include crate [chrono](https://docs.rs/chrono/latest/chrono/).
+
+To use it you need to turn on feature in *Cargo.toml*:
+```toml
+[dependencies]
+# ...
+iodeser = {version = "0.5.3", features = ["chrono"]}
+```
+
+You can either inclide *chrono* as a dependency in *Cargo.toml* or use it from *iodeser* package:
+```rust
+use iodeser::chrono::*;
+```
