@@ -33,7 +33,7 @@ Full list of supported types can be found in this [crate's documentation](https:
  - Renaming structs fields in and from .io formatted String using **#[io_name()]** helper macro using String literal as argument.
  - Ordering structs fields in and from .io formatted String using **#[io_order()]** helper macro using either FIRST and LAST keywords or an i16 Integer.
 
-See [example](#example-usage) how these capabilities can be utilized.
+Refer to [example](#example-usage) to see, how these capabilities can be utilized and how they affect the serialized string.
 
 ### How to use
 First, you need to import iodeser crate. Inside of **Cargo.toml** add:
