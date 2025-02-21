@@ -25,12 +25,55 @@ mod struct_type;
 /// Works with structs and enum data types.
 ///
 /// ## Examples
+/// By default, IoDeSer serializes only public fields in the order they appear in the object definition.
+/// 
+/// **Private fields are required to implement trait [Default].**
+/// 
 /// ```rust
 /// use iodeser::*;
 /// #[derive(IoDeSer)]
 /// struct HtmlService{
-/// 	pub api_key_string: String,
-///    	pub address: String,
+///     api_key_string: String,
+///     pub address: String,
+/// }
+/// ```
+/// 
+/// In this example, macro "to_io!" will serialize only field "address" and ignore "api_key_string".
+/// It is intended behaviour to not serialize private fields, as they should not be exposed externally.
+/// To serialize private fields use "io_allow" attribute. 
+/// 
+/// Similarly, public fields - that are noramlly serialized - 
+/// can be ignored during serialization using "io_ignore" attribute.
+/// 
+/// **Ignored fields are required to implement trait [Default].**
+/// 
+/// ```rust
+/// use iodeser::*;
+/// #[derive(IoDeSer)]
+/// struct HtmlService{
+///     #[io_allow]
+///     api_key_string: String,
+///     #[io_ignore]
+///     pub address: String,
+/// }
+/// ```
+/// 
+/// Now, only "api_key_string" will be serialized.
+/// 
+/// -------------------
+/// 
+/// To rename field in serialized string or the deserialize field of different name that the object's definition have use "io_name" attribute with **String** argument.
+/// 
+/// Next, to change the order of fields in serialized string use "io_order" attribute with **i16** argument.
+/// 
+/// ```rust
+/// use iodeser::*;
+/// #[derive(IoDeSer)]
+/// struct HtmlService{
+///     #[io_name("key")] #[io_order(2)]
+///     pub api_key_string: String,
+///     #[io_name("website")] #[io_order(1)]
+///     pub address: String,
 /// }
 /// ```
 pub fn opis_derive_macro(input: TokenStream) -> TokenStream {
@@ -38,7 +81,7 @@ pub fn opis_derive_macro(input: TokenStream) -> TokenStream {
     let input_name = &input.ident;
     let (impl_generics, ty_generics, where_clause) = &input.generics.split_for_impl();
 
-    let (return_type, errors) = create_fields_from_data(&input);
+    let (return_type, compile_errors) = create_fields_from_data(&input);
     let mut return_type: proc_macro::TokenStream = match return_type{
         ReturnType::Struct(s) => {
             handle_struct(s, input_name, impl_generics, ty_generics, where_clause)
@@ -47,17 +90,7 @@ pub fn opis_derive_macro(input: TokenStream) -> TokenStream {
         ReturnType::Unit => panic!()
     }.into();
 
-    return_type.extend(errors);
+    // add errors to token return
+    return_type.extend(compile_errors);
     return_type
 }
-
-//TODO escape characters in String values, for example new line should be = \n (destroy whole format)
-
-/*
-
-ReturnType::Struct(s) => {
-                    handle_struct(s, input_name, impl_generics, ty_generics, where_clause)
-                }
-                ReturnType::Enum(e) => handle_enum(e, input_name, impl_generics, ty_generics, where_clause),
-                ReturnType::Unit => quote!(compile_error!("Unit-like struct are not supported yet!"))
-*/

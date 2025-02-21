@@ -117,32 +117,33 @@ fn classify_fields<'a>(field: &'a syn::Field, input: &'a DeriveInput, mut fields
 }
 
 fn is_public_ignored(public_field: &syn::Field) -> bool {
-    field_has_attribute(public_field, "io_ignore")
+    field_has_attribute(public_field, "io_ignore").is_some()
 }
 
 fn is_private_allowed(private_field: &syn::Field) -> bool {
-    field_has_attribute(private_field, "io_allow")
+    field_has_attribute(private_field, "io_allow").is_some()
 }
 
-fn field_has_attribute(field: &syn::Field, attribute_name: &str) -> bool {
-    field.attrs.iter().any(
-        |attr| attr.path().is_ident(attribute_name)
-    )
+fn field_has_attribute<'a>(field: &'a syn::Field, attribute_name: &'a str) -> Option<&'a syn::Attribute> {
+    field.attrs.iter().find(|attr| attr.path().is_ident(attribute_name))
 }
 
 fn check_attributes_errors(field: &syn::Field, should_be_serialized: bool, is_public: bool, errors: &mut Vec<TokenStream>){
+    let name = &field.clone().ident.map(|ident| ident.to_string()).unwrap_or("".to_string());
+
+
     if is_public{
-        if field_has_attribute(field, "io_allow"){
+        if let Some(attr) = field_has_attribute(field, "io_allow"){
             errors.push(quote_spanned!{
-                field.span() =>
-                compile_error!("Public fields should not have attibute #[io_allow].");
+                attr.span() =>
+                    compile_error!(concat!("Public field \"", #name, "\" should not have attibute #[io_allow]."));
             }.into());
         }
     }else{
-        if field_has_attribute(field, "io_ignore"){
+        if let Some(attr) = field_has_attribute(field, "io_ignore"){
             errors.push(quote_spanned!{
-                field.span() =>
-                compile_error!("Private fields should not have attibute #[io_ignore].");
+                attr.span() =>
+                    compile_error!(concat!("Private field \"", #name, "\" should not have attibute #[io_ignore]."));
             }.into());
         }
     }
@@ -156,31 +157,31 @@ fn check_attributes_errors(field: &syn::Field, should_be_serialized: bool, is_pu
         // should not be serialized: private or ignored public
 
         // ordering is unnecessary
-        if field_has_attribute(field, "io_order"){
+        if let Some(attr) = field_has_attribute(field, "io_order"){
             if is_public{
                 errors.push(quote_spanned!{
-                    field.span() => // TODO attrubite span, not field
-                    compile_error!("Private fields should not have attibute #[io_order]");
+                    attr.span() => // TODO attrubite span, not field
+                        compile_error!(concat!("Ignored field \"", #name, "\" should not have attibute #[io_order]."));
                 }.into());
             }else{
                 errors.push(quote_spanned!{
-                    field.span() =>
-                    compile_error!("Private fields should not have attibute #[io_order]");
+                    attr.span() =>
+                        compile_error!(concat!("Private field \"", #name, "\" should not have attibute #[io_order]."));
                 }.into());
             }
         }
 
         // renaming is unnecesarry
-        if field_has_attribute(field, "io_name"){
+        if let Some(attr) = field_has_attribute(field, "io_name"){
             if is_public{
                 errors.push(quote_spanned!{
-                    field.span() =>
-                    compile_error!("Ignored fields should not have attibute #[io_name]");
+                    attr.span() =>
+                        compile_error!(concat!("Ignored field \"", #name, "\" should not have attibute #[io_name]."));
                 }.into());
             }else{
                 errors.push(quote_spanned!{
-                    field.span() =>
-                    compile_error!("Private fields should not have attibute #[io_name]");
+                    attr.span() =>
+                        compile_error!(concat!("Private field \"", #name, "\" should not have attibute #[io_name]."));
                 }.into());
             }
         }

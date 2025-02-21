@@ -32,6 +32,8 @@ Full list of supported types can be found in this [crate's documentation](https:
  - Deserialization of [supported types](#functions-and-plans) using macro **from_io!()** using .io formatted String and objects type,
  - Renaming structs fields in and from .io formatted String using **#[io_name()]** helper macro using String literal as argument.
  - Ordering structs fields in and from .io formatted String using **#[io_order()]** helper macro using either FIRST and LAST keywords or an i16 Integer.
+ - Ignoring public fields in de/serialization using **#[io_ignore]** helper macro
+ - Allowing to de/serialize private fields using **#[io_allow]** helper macro.
 
 Refer to [example](#example-usage) to see, how these capabilities can be utilized and how they affect the serialized string.
 
@@ -40,7 +42,7 @@ First, you need to import iodeser crate. Inside of **Cargo.toml** add:
 ```toml
 [dependencies]
 # ...
-iodeser = "0.5.3"
+iodeser = "0.6.0"
 ```
 
 Next, you need to import crate in a code:
@@ -178,7 +180,7 @@ To use it you need to turn on feature in *Cargo.toml*:
 ```toml
 [dependencies]
 # ...
-iodeser = {version = "0.5.3", features = ["chrono"]}
+iodeser = {version = "0.6.0", features = ["chrono"]}
 ```
 
 You can either inclide *chrono* as a dependency in *Cargo.toml* or use it from *iodeser* package:
