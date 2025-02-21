@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 use syn::{DataStruct, DeriveInput, FieldsNamed, Visibility};
-use quote::{quote, quote_spanned};
+use quote::quote_spanned;
 use syn::spanned::Spanned;
 
 use crate::{
@@ -9,15 +9,18 @@ use crate::{
     FieldOrder,
 };
 
-pub(crate) fn create_fields_from_data(input: &DeriveInput) -> Result<ReturnType, TokenStream> {
+pub(crate) fn create_fields_from_data(input: &DeriveInput) -> (ReturnType, TokenStream) {
+    let mut errors = Vec::new();
+
     if let syn::Data::Struct(ref data) = input.data {
-        Ok(process_struct(data, input)?)
+        (process_struct(data, input, &mut errors), errors.into_iter().collect())
     } else if let syn::Data::Enum(ref data) = input.data {
-        Ok(ReturnType::Enum(create_from_enum(data)))
+        (ReturnType::Enum(create_from_enum(data)), errors.into_iter().collect())
     } else {
-        Err(quote!{
-            compile_error!("This data type is not supported by IoDeSer attribute.")
-        }.into())
+        panic!();
+        // quote!{
+        //     compile_error!("This data type is not supported by IoDeSer attribute.")
+        // }.into())
     }
 }
 
@@ -27,12 +30,12 @@ pub(crate) enum ReturnType<'a> {
     Unit
 }
 
-fn process_struct<'a>(struct_data: &'a DataStruct, input: &'a DeriveInput) -> Result<ReturnType<'a>, TokenStream> {
-    Ok(match &struct_data.fields {
-        syn::Fields::Named(fields_named) => process_named(fields_named, input)?, // struct X{}
+fn process_struct<'a>(struct_data: &'a DataStruct, input: &'a DeriveInput, errors: &mut Vec<TokenStream>) -> ReturnType<'a> {
+    match &struct_data.fields {
+        syn::Fields::Named(fields_named) => process_named(fields_named, input, errors), // struct X{}
         syn::Fields::Unnamed(fields_unnamed) => process_unnamed(fields_unnamed), // struct X()
         syn::Fields::Unit => ReturnType::Unit, // struct X;
-    })
+    }
 }
 
 fn process_unnamed<'a>(fields: &'a syn::FieldsUnnamed) -> ReturnType<'a> {
@@ -57,60 +60,60 @@ fn process_unnamed<'a>(fields: &'a syn::FieldsUnnamed) -> ReturnType<'a> {
     ))
 }
 
-fn process_named<'a>(fields: &'a FieldsNamed, input: &'a DeriveInput) -> Result<ReturnType<'a>, TokenStream> {
-    let (public_fields, private_fields) = sort_field_by_visibility(fields, input)?;
+fn process_named<'a>(fields: &'a FieldsNamed, input: &'a DeriveInput, errors: &mut Vec<TokenStream>) -> ReturnType<'a> {
+    let (public_fields, private_fields) = sort_field_by_visibility(fields, input, errors);
 
-    Ok(ReturnType::Struct(StructType::NamedFields {
+    ReturnType::Struct(StructType::NamedFields {
         publics: public_fields,
         privates: private_fields,
-    }))
+    })
 }
 
-fn sort_field_by_visibility<'a>(fields: &'a FieldsNamed, input: &'a DeriveInput) -> Result<(Vec<FieldOrder<'a>>, Vec<&'a syn::Field>), TokenStream> {
+fn sort_field_by_visibility<'a>(fields: &'a FieldsNamed, input: &'a DeriveInput, errors: &mut Vec<TokenStream>) -> (Vec<FieldOrder<'a>>, Vec<&'a syn::Field>) {
     let (mut public_fields, private_fields): (Vec<FieldOrder<'_>>, Vec<_>) =
         fields
         .named
         .iter()
-        .try_fold(
+        .fold(
 
             // init public and private with empty array
             (Vec::new(), Vec::new()),
 
             // apply function, that pushes to public/private based on the field visibility
             |(public, private), field| {
-                classify_fields(field, input, (public, private))
+                classify_fields(field, input, (public, private), errors)
             },
-        )?;
+        );
 
     public_fields.sort();
 
-    Ok((public_fields, private_fields))
+    (public_fields, private_fields)
 }
 
-fn classify_fields<'a>(field: &'a syn::Field, input: &'a DeriveInput, mut fields: (Vec<FieldOrder<'a>>, Vec<&'a syn::Field>)) -> Result<(Vec<FieldOrder<'a>>, Vec<&'a syn::Field>),TokenStream> {
+fn classify_fields<'a>(field: &'a syn::Field, input: &'a DeriveInput, mut fields: (Vec<FieldOrder<'a>>, Vec<&'a syn::Field>), errors: &mut Vec<TokenStream>) -> (Vec<FieldOrder<'a>>, Vec<&'a syn::Field>) {
 
     // .0 for public | .1 for private
     if let Visibility::Public(_) = field.vis {
 
         if is_public_ignored(field){
-            check_attributes_errors(field, false, true)?;
+            check_attributes_errors(field, false, true, errors);
             fields.1.push(field);
         }else{
-            check_attributes_errors(field, true, true)?;
+            check_attributes_errors(field, true, true, errors);
             fields.0.push(FieldOrder::new(field, &input.ident));
         }
     } else {
 
         if is_private_allowed(field){
-            check_attributes_errors(field, true, false)?;
+            check_attributes_errors(field, true, false, errors);
             fields.0.push(FieldOrder::new(field, &input.ident));
         }else{
-            check_attributes_errors(field, false, false)?;
+            check_attributes_errors(field, false, false, errors);
             fields.1.push(field);
         }
     }
 
-    Ok(fields)
+    fields
 }
 
 fn is_public_ignored(public_field: &syn::Field) -> bool {
@@ -127,19 +130,19 @@ fn field_has_attribute(field: &syn::Field, attribute_name: &str) -> bool {
     )
 }
 
-fn check_attributes_errors(field: &syn::Field, should_be_serialized: bool, is_public: bool)->Result<(), TokenStream>{
+fn check_attributes_errors(field: &syn::Field, should_be_serialized: bool, is_public: bool, errors: &mut Vec<TokenStream>){
     if is_public{
         if field_has_attribute(field, "io_allow"){
-            return Err(quote_spanned!{
+            errors.push(quote_spanned!{
                 field.span() =>
-                compile_error!("Public fields should not have attibute #[io_allow].")
+                compile_error!("Public fields should not have attibute #[io_allow].");
             }.into());
         }
     }else{
         if field_has_attribute(field, "io_ignore"){
-            return Err(quote_spanned!{
+            errors.push(quote_spanned!{
                 field.span() =>
-                compile_error!("Private fields should not have attibute #[io_ignore].")
+                compile_error!("Private fields should not have attibute #[io_ignore].");
             }.into());
         }
     }
@@ -155,14 +158,14 @@ fn check_attributes_errors(field: &syn::Field, should_be_serialized: bool, is_pu
         // ordering is unnecessary
         if field_has_attribute(field, "io_order"){
             if is_public{
-                return Err(quote_spanned!{
-                    field.span() =>
-                    compile_error!("Private fields should not have attibute #[io_order]")
+                errors.push(quote_spanned!{
+                    field.span() => // TODO attrubite span, not field
+                    compile_error!("Private fields should not have attibute #[io_order]");
                 }.into());
             }else{
-                return Err(quote_spanned!{
+                errors.push(quote_spanned!{
                     field.span() =>
-                    compile_error!("Private fields should not have attibute #[io_order]")
+                    compile_error!("Private fields should not have attibute #[io_order]");
                 }.into());
             }
         }
@@ -170,18 +173,16 @@ fn check_attributes_errors(field: &syn::Field, should_be_serialized: bool, is_pu
         // renaming is unnecesarry
         if field_has_attribute(field, "io_name"){
             if is_public{
-                return Err(quote_spanned!{
+                errors.push(quote_spanned!{
                     field.span() =>
-                    compile_error!("Ignored fields should not have attibute #[io_name]")
+                    compile_error!("Ignored fields should not have attibute #[io_name]");
                 }.into());
             }else{
-                return Err(quote_spanned!{
+                errors.push(quote_spanned!{
                     field.span() =>
-                    compile_error!("Private fields should not have attibute #[io_name]")
+                    compile_error!("Private fields should not have attibute #[io_name]");
                 }.into());
             }
         }
     }
-
-    Ok(())
 }

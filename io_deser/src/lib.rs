@@ -38,18 +38,26 @@ pub fn opis_derive_macro(input: TokenStream) -> TokenStream {
     let input_name = &input.ident;
     let (impl_generics, ty_generics, where_clause) = &input.generics.split_for_impl();
 
-    match create_fields_from_data(&input) {
-        Ok(o) => {
-            match o{
-                ReturnType::Struct(s) => {
+    let (return_type, errors) = create_fields_from_data(&input);
+    let mut return_type: proc_macro::TokenStream = match return_type{
+        ReturnType::Struct(s) => {
+            handle_struct(s, input_name, impl_generics, ty_generics, where_clause)
+        }
+        ReturnType::Enum(e) => handle_enum(e, input_name, impl_generics, ty_generics, where_clause),
+        ReturnType::Unit => panic!()
+    }.into();
+
+    return_type.extend(errors);
+    return_type
+}
+
+//TODO escape characters in String values, for example new line should be = \n (destroy whole format)
+
+/*
+
+ReturnType::Struct(s) => {
                     handle_struct(s, input_name, impl_generics, ty_generics, where_clause)
                 }
                 ReturnType::Enum(e) => handle_enum(e, input_name, impl_generics, ty_generics, where_clause),
                 ReturnType::Unit => quote!(compile_error!("Unit-like struct are not supported yet!"))
-            }.into()
-        },
-        Err(e) => e,
-    }
-}
-
-//TODO escape characters in String values, for example new line should be = \n (destroy whole format)
+*/

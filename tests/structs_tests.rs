@@ -7,9 +7,11 @@ pub fn struct_with_attributes(){
     struct Person{
         #[io_allow] #[io_name("PersonID")]
         id: u16,
+
+        #[io_ignore] #[io_order(5)]
         id2: String,
 
-        // #[io_allow] // this would causing error
+        #[io_allow] // this would causing error 
         pub name: String,
         #[io_ignore]
         pub last_name: String
