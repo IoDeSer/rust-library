@@ -24,8 +24,8 @@ use iodeser::*;
 
 #[derive(IoDeSer)]
 struct HttpRequest<T: IoDeSer>{
-    #[io_allow] route_id:u32,
-    #[io_ignore] pub home_page: String,
+    #[io_allow] #[io_order(2)] route_id:u32,
+    #[io_ignore] pub home_page: String, // adding io_name or io_order attribute here would cause error
     #[io_name("r")] #[io_order(1)] pub route: String,
     #[io_name("d")] #[io_order(0)] pub data: T
 }
@@ -39,12 +39,17 @@ struct HttpRequestUnchanged<T: IoDeSer>{
 }
 
 fn main() {
-    // Sample serialized data from an API with field names "d" and "r"
+    // Sample serialized data from an API with field names "d" and "r".
+    // Notice, that in structs HttpRequest and HttpRequestUnchanged private field "route_id",
+    //  that normaly would not be de/serialized has attrubute "io_allow". 
+    // On the other hand, public field "home_page" has "io_ignore" attribute.
+    // Those attribute change default de/serialization rules for those rules without the need
+    //  to change their visibility in struct's definition.
     let http_request_serialized = 
 "|
-    route_id->|5|
     d->512
     r->\"www.data.com\"
+    route_id->|5|
 |".to_string();
 
     // Instead of changing names in our struct, we can use attribute '#[io_name(...)]'
@@ -57,10 +62,10 @@ fn main() {
     // Similarly, if API needs certain field names, that are differnt from rust definition:
     let http_request = HttpRequest::<char>{ route_id:5, home_page:"/".into(), route:"/set/book".into(), data:'Z' };
     let serialized = to_io!(&http_request);
-    assert_eq!(serialized, "|\n\troute_id->|5|\n\td->|Z|\n\tr->|/set/book|\n|");
+    assert_eq!(serialized, "|\n\td->|Z|\n\tr->|/set/book|\n\troute_id->|5|\n|");
     println!("{}\n", serialized);
 
-    // Compare above output, to the one below:
+    // Compare above output, to the one below (HttpRequestUnchanged does not use io_name and io_order):
     let http_request_unchanged = HttpRequestUnchanged::<char>{ route_id:5, home_page:"/".into(), route:"/set/book".into(), data:'Z' };
     let serialized_unchanged = to_io!(&http_request_unchanged);
     println!("{}", serialized_unchanged);
@@ -69,9 +74,11 @@ fn main() {
 |
         d->|Z|
         r->|/set/book|
+        route_id->|5|
 |
 
 |
+        route_id->|5|
         route->|/set/book|
         data->|Z|
 |

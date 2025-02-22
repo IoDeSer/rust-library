@@ -8,7 +8,9 @@
 */
 
 use iodeser::*;
-use iodeser::chrono::{NaiveDate, Utc, DateTime};
+use iodeser::chrono::{NaiveDate, Utc, DateTime}; // this line would create an error without "chrono" feature on,
+//                                                  but it is also possible to import chrono directly (chrono = "*") with:
+//                                                  use chrono::::{NaiveDate, Utc, DateTime};
 
 fn main() {
     let naive_date = NaiveDate::from_ymd_opt(2020, 3, 12).unwrap();
