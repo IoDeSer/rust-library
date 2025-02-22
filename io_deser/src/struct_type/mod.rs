@@ -238,8 +238,6 @@ fn implement_iodeser_trait(struct_name: &Ident, to_io_string_tokens_implementati
 
 
             fn from_io_string(io_input:&mut String)->iodeser::Result<Self>{
-				// DELETE TABULATOR
-
 				if !io_input.starts_with('|') || !io_input.ends_with('|') {
 					return Err(iodeser::Error::io_format (
 						io_input.clone(),
@@ -248,6 +246,7 @@ fn implement_iodeser_trait(struct_name: &Ident, to_io_string_tokens_implementati
 				}
 
 
+				// DELETE TABULATOR
 				let mut ret = String::new();
 				for line in io_input.lines().filter(|line| line.len() > 1) {
 					ret.push_str(&line[1..]);
@@ -256,6 +255,8 @@ fn implement_iodeser_trait(struct_name: &Ident, to_io_string_tokens_implementati
 				*io_input = ret.trim().to_string();
 				// DELETE TABULATOR
 
+
+				
 				let mut variable_and_io_str_value = Vec::<String>::new();
 				#_deserialization_implementation
 

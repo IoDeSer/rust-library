@@ -1,8 +1,7 @@
 use iodeser::*;
 
 // This example demonstrates serialization and deserialization of a structs
-//  considering 2 (out of 3) types of structs: tuple and with named fields.
-// NOTE: Unit struct is NOT supported yet.
+//  considering all types of structs: tuple(), with named fields{} and unit-like.
 
 #[derive(IoDeSer, Debug, PartialEq)] // Debug, PartialEq derives required for assert_eq only
 struct NamedStruct {
@@ -11,25 +10,35 @@ struct NamedStruct {
     pub array: Vec<i32>,
 }
 
+
 #[derive(IoDeSer, Debug, PartialEq)] // Debug, PartialEq derives required for assert_eq only
 struct TupleStruct(pub i32, pub Vec<i32>, bool);
+
+
+#[derive(IoDeSer, Debug, PartialEq)] // Debug, PartialEq derives required for assert_eq only
+struct UnitLikeStruct;
+
 
 fn main() {
     // initialize objects
     let named = NamedStruct { private_field:'E', value: 0, array: vec![0, 1, 2] };
     let tuple = TupleStruct(3, vec![3, 4, 5], true);
+    let unit = UnitLikeStruct;
 
     // serialization of each object
     let io_string_named_struct = to_io!(&named);
     let io_string_tuple_struct = to_io!(&tuple);
-    println!("Named:\n{}\n\nTuple:\n{}\n", io_string_named_struct, io_string_tuple_struct);
+    let io_string_unit_struct = to_io!(&unit);
+    println!("Named:\n{}\n\nTuple:\n{}\n\nUnit-like:\n{}\n\n=====\n\n", io_string_named_struct, io_string_tuple_struct,io_string_unit_struct);
 
     // deserialization of each object
     let named_deserialized = from_io!(io_string_named_struct, NamedStruct).unwrap();
     let tuple_deserialized = from_io!(io_string_tuple_struct, TupleStruct).unwrap();
+    let unit_deserialized = from_io!(io_string_unit_struct, UnitLikeStruct).unwrap();
 
     println!("Named:\nOriginal\t{:?}\nDeserialized\t{:?}\n", named, named_deserialized);
-    println!("Tuple:\nOriginal\t{:?}\nDeserialized\t{:?}", tuple, tuple_deserialized);
+    println!("Tuple:\nOriginal\t{:?}\nDeserialized\t{:?}\n", tuple, tuple_deserialized);
+    println!("Unit-like:\nOriginal\t{:?}\nDeserialized\t{:?}", unit, unit_deserialized);
 
     /*
         Because NamedStruct has private field, which uses the default method to initialize,
@@ -47,6 +56,7 @@ fn main() {
     // This works
     assert!(named.value == named_deserialized.value && named.array == named_deserialized.array);
     assert!(tuple.0 == tuple_deserialized.0 && tuple.1 == tuple_deserialized.1);
+    assert_eq!(unit, unit_deserialized);
 }
 /*Output
 Named:

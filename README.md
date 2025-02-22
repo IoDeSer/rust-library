@@ -13,7 +13,7 @@ The current status of both serialization and deserialization:
 - [X] Arrays
 - [X] Vectors
 - [X] Hashmaps
-- [X] Structs (Named{} and Tuple())
+- [X] Structs (Named{} and Tuple() and Unit-like)
 - [X] Generic objects (<T>)
 - [X] Tuples
 - [X] &str type

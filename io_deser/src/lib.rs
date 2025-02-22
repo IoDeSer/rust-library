@@ -17,6 +17,7 @@ mod fields_ordering;
 mod fields_processing;
 mod fields_renaming;
 mod struct_type;
+mod unit_struct;
 
 
 #[proc_macro_derive(IoDeSer, attributes(io_name, io_order, io_ignore, io_allow))]
@@ -87,7 +88,7 @@ pub fn opis_derive_macro(input: TokenStream) -> TokenStream {
             handle_struct(s, input_name, impl_generics, ty_generics, where_clause)
         }
         ReturnType::Enum(e) => handle_enum(e, input_name, impl_generics, ty_generics, where_clause),
-        ReturnType::Unit => panic!()
+        ReturnType::Unit => unit_struct::handle_unit(input_name, impl_generics, ty_generics, where_clause)
     }.into();
 
     // add errors to token return

@@ -2,6 +2,7 @@ use iodeser::*;
 
 #[test]
 #[allow(dead_code)]
+#[should_panic]
 pub fn struct_with_attributes(){
     #[derive(IoDeSer, Debug)]
     struct Person{
@@ -17,13 +18,36 @@ pub fn struct_with_attributes(){
         //#[io_name("5")] #[io_ignore] 
         pub last_name: String
     }
+}
 
-    let p = Person{id:55, id2: "--2321--sdf".into(), name:"name".into(), last_name: "last".into()};
-    let io = to_io!(&p);
+#[test]
+#[allow(dead_code)]
+fn unit_struct(){
+    #[derive(IoDeSer, Debug, Default)]
+    struct X;
 
-    println!("{}", io);
+    #[derive(IoDeSer, Debug)]
+    struct Person{
+        #[io_allow] #[io_name("PersonID")]     
+        id: u16,
 
-    let d = from_io!(io, Person).unwrap();
+        #[io_allow]
+        id2: Option<String>,
 
-    println!("\n\n{:?}\n{:?}", p, d);
+        pub name: String,
+        pub last_name: String,
+        pub check:X
+    }
+
+    let x = Person{id:66, id2: None, name:"this is a name!".into(),last_name:"last name....".into(), check: X};
+
+    println!("{x:?}");
+
+    let io = to_io!(&x);
+
+    println!("\n{io}\n========\n");
+
+    let x2 = from_io!(io, Person).unwrap();
+
+    println!("{x2:?}");
 }
