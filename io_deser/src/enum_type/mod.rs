@@ -356,16 +356,29 @@ fn from_io_token_implementation(enums_fields: &EnumType, enum_name: &Ident) -> T
                     .into());
             }
 
-            let mut ret = String::new();
-            for line in io_input.lines().filter(|line| line.len() > 1) {
-                ret.push_str(&line[1..]);
-                ret.push('\n');
-            }
-            *io_input = ret.trim().to_string();
+            let mut previous_was_newline = true;
+            io_input.retain(|c| {
 
-            let enum_selected_field = io_input.split("->").next().unwrap(); //TODO delete unwrap
+                if previous_was_newline{
+                    previous_was_newline = false;
+                    return false;
+                }
+
+                if c=='\n'{
+                    previous_was_newline = true;
+                    return true;
+                }
+
+                true
+            });
+
+            // Remove the first and last vertical bars
+            io_input.remove(0); // Remove the first '|'
+            io_input.pop(); // Remove the last '|'
 
             // DELETE TABULATOR
+            let enum_selected_field = io_input.split("->").next().unwrap(); //TODO delete unwrap
+
             return Ok(#vector_fields_token
             else{
                 panic!("field not found in enum") // TODO better error

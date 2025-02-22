@@ -247,12 +247,25 @@ fn implement_iodeser_trait(struct_name: &Ident, to_io_string_tokens_implementati
 
 
 				// DELETE TABULATOR
-				let mut ret = String::new();
-				for line in io_input.lines().filter(|line| line.len() > 1) {
-					ret.push_str(&line[1..]);
-					ret.push('\n');
-				}
-				*io_input = ret.trim().to_string();
+				let mut previous_was_newline = true;
+				io_input.retain(|c| {
+
+					if previous_was_newline{
+						previous_was_newline = false;
+						return false;
+					}
+
+					if c=='\n'{
+						previous_was_newline = true;
+						return true;
+					}
+
+					true
+				});
+
+				// Remove the first and last vertical bars
+				io_input.remove(0); // Remove the first '|'
+				io_input.pop(); // Remove the last '|'
 				// DELETE TABULATOR
 
 
