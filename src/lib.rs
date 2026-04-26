@@ -1,3 +1,4 @@
+#![allow(warnings)]
 //! # IoDeSer
 //! IoDeSer is a open-source project that allows to **de**serialize and **ser**ialize objects into **.io** formatted String.
 //!
@@ -95,11 +96,15 @@ mod errors;
 mod others;
 mod references;
 mod times;
+#[cfg(feature = "serde")]
+pub mod serde;
 
 pub use errors::Error;
 pub use io_deser::*;
 #[cfg(feature = "chrono")]
 pub use chrono;
+
+
 
 
 /// Alias for a `Result` with the error type [`errors::Error`]

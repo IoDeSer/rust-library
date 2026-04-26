@@ -1,7 +1,7 @@
 #[macro_export]
 macro_rules! compare_from {
     ($original: expr,$type:ty, $name:expr) => {
-        ::paste::paste!{
+        ::pastey::paste!{
             #[test]
             fn [<deserialization_ $name>]()
             {
@@ -22,7 +22,7 @@ macro_rules! compare_from {
 #[macro_export]
 macro_rules! compare_to{
     ($original: expr, $proper_outcome:expr, $name:expr) => {
-        ::paste::paste!{
+        ::pastey::paste!{
             #[test]
             fn [<serialization_ $name>]()
             {

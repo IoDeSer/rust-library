@@ -2,7 +2,6 @@ use iodeser::*;
 
 #[test]
 #[allow(dead_code)]
-//#[should_panic]
 pub fn struct_with_attributes(){
     #[derive(IoDeSer, Debug)]
     struct Person{
